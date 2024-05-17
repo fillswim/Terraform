@@ -1,9 +1,14 @@
+locals {
+  start_id = 171
+  count = 3
+}
+
 resource "proxmox_vm_qemu" "test_ubuntu_vms" {
 
   # Количество
-  count       = 3
+  count       = local.count
 
-  # vmid        = 60+count.index
+  vmid        = local.start_id + count.index
 
   # Нода Proxmox, на которой будут разворачиваться ВМ-ки
   target_node = "proxmox1"
@@ -60,7 +65,7 @@ resource "proxmox_vm_qemu" "test_ubuntu_vms" {
   }
 
   # Настройки IP и шлюза
-  ipconfig0   = "ip=192.168.2.6${count.index + 1}/24,gw=192.168.2.1"
+  ipconfig0   = "ip=192.168.2.${local.start_id + count.index}/24,gw=192.168.2.1"
 
   # (Optional) Default User
   # ciuser = "your-username"
