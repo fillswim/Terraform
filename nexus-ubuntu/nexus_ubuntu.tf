@@ -1,50 +1,49 @@
 locals {
-  start_id = 171
-  count = 3
+  nexus_ubuntu_id = 44
+  proxmox_node    = "proxmox2"
 }
 
-resource "proxmox_vm_qemu" "test_ubuntu_vms" {
+# NTP OZOD
+resource "proxmox_vm_qemu" "nexus_ubuntu" {
 
-  # Количество
-  count       = local.count
-
-  vmid        = local.start_id + count.index
+  vmid = 1000 + local.nexus_ubuntu_id
 
   # Нода Proxmox, на которой будут разворачиваться ВМ-ки
-  target_node = "proxmox1"
+  target_node = local.proxmox_node
+
   # Название ВМ-ок
-  name        = "test-ubuntu-vm-${count.index + 1}"
+  name = "nexus-ubuntu"
   # Описание
-  desc        = "Test_description"
+  desc = "Nexus Ubuntu"
 
   # Клонируемый образ ВМ
-  clone       = "ubuntu-22.04-cloud"
+  clone = "ubuntu-22.04-cloud"
 
   # Следует ли запускать виртуальную машину после запуска узла PVE
-  onboot      = true
+  onboot = true
 
   # VM Cloud-Init Settings
-  os_type     = "cloud-init"
+  os_type = "cloud-init"
   # Место хранения Cloud-Init образа
   cloudinit_cdrom_storage = "local-lvm"
 
   # Включить гостевой агент
-  agent       = 1
+  agent = 1
 
   # Настройки CPU
-  cores       = 4
-  sockets     = 1
-  cpu         = "host"
+  cores   = 6
+  sockets = 1
+  cpu     = "host"
 
   # Настройки оперативная память
-  memory      = 4096
+  memory = 8192
 
   # Тип контроллера SCSI для эмуляции (lsi, lsi53c810, megasas, pvscsi, virtio-scsi-pci, virtio-scsi-single)
-  scsihw      = "virtio-scsi-pci"
+  scsihw = "virtio-scsi-pci"
   # Разрешить загрузку с ide2
-  bootdisk    = "ide2"
+  bootdisk = "ide2"
   # Порядок загрузки
-  boot        = "order=virtio0;ide2;net0"
+  boot = "order=virtio0;ide2;net0"
 
   # Создать virtio0 диск
   disks {
@@ -52,7 +51,13 @@ resource "proxmox_vm_qemu" "test_ubuntu_vms" {
       virtio0 {
         disk {
           storage = "local-lvm"
-          size    = "34"
+          size    = "50"
+        }
+      }
+      virtio1 {
+        disk {
+          storage = "local-lvm"
+          size    = "200"
         }
       }
     }
@@ -60,18 +65,15 @@ resource "proxmox_vm_qemu" "test_ubuntu_vms" {
 
   # Конфигурация сети
   network {
-    model     = "virtio"
-    bridge    = "vmbr0"
+    model  = "virtio"
+    bridge = "vmbr0"
   }
 
   # Настройки IP и шлюза
-  ipconfig0   = "ip=192.168.2.${local.start_id + count.index}/24,gw=192.168.2.1"
+  ipconfig0 = "ip=192.168.2.${local.nexus_ubuntu_id}/24,gw=192.168.2.1"
 
-  # (Optional) Default User
-  # ciuser = "your-username"
+  lifecycle {
+    ignore_changes = [ bootdisk, ciuser, qemu_os, sshkeys ]
+  }
 
-  # (Optional) Add your SSH KEY
-  # sshkeys = <<EOF
-  # #YOUR-PUBLIC-SSH-KEY
-  # EOF
 }
