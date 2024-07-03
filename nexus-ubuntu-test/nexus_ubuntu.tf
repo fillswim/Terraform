@@ -1,26 +1,23 @@
 locals {
-
-  start_id = 181
-  count = 4
-
+  nexus_ubuntu_id = 43
+  proxmox_node    = "proxmox2"
 }
 
-# OCFS NODES
-resource "proxmox_vm_qemu" "ocfs_servers_altlinux" {
+# NTP OZOD
+resource "proxmox_vm_qemu" "nexus_ubuntu_test" {
 
-  count       = local.count
-
-  vmid        = 2000 + local.start_id + count.index
+  vmid = 1000 + local.nexus_ubuntu_id
 
   # Нода Proxmox, на которой будут разворачиваться ВМ-ки
-  target_node = "proxmox1"
+  target_node = local.proxmox_node
+
   # Название ВМ-ок
-  name = "ocfs-node-${count.index + 1}"
+  name = "nexus-ubuntu"
   # Описание
-  desc = "ocfs-node-${count.index + 1}"
+  desc = "Nexus Ubuntu"
 
   # Клонируемый образ ВМ
-  clone = "alt-p10-cloud-v9"
+  clone = "ubuntu-22.04-cloud"
 
   # Следует ли запускать виртуальную машину после запуска узла PVE
   onboot = true
@@ -34,12 +31,12 @@ resource "proxmox_vm_qemu" "ocfs_servers_altlinux" {
   agent = 1
 
   # Настройки CPU
-  cores   = 4
+  cores   = 6
   sockets = 1
   cpu     = "host"
 
   # Настройки оперативная память
-  memory = 4096
+  memory = 8192
 
   # Тип контроллера SCSI для эмуляции (lsi, lsi53c810, megasas, pvscsi, virtio-scsi-pci, virtio-scsi-single)
   scsihw = "virtio-scsi-pci"
@@ -54,7 +51,13 @@ resource "proxmox_vm_qemu" "ocfs_servers_altlinux" {
       virtio0 {
         disk {
           storage = "local-lvm"
-          size    = "35"
+          size    = "50"
+        }
+      }
+      virtio1 {
+        disk {
+          storage = "local-lvm"
+          size    = "200"
         }
       }
     }
@@ -67,10 +70,10 @@ resource "proxmox_vm_qemu" "ocfs_servers_altlinux" {
   }
 
   # Настройки IP и шлюза
-  ipconfig0 = "ip=192.168.2.${local.start_id + count.index}/24,gw=192.168.2.1"
+  ipconfig0 = "ip=192.168.2.${local.nexus_ubuntu_id}/24,gw=192.168.2.1"
 
   lifecycle {
-    ignore_changes = [ bootdisk, ciuser, qemu_os, sshkeys, boot ]
+    ignore_changes = [ bootdisk, ciuser, qemu_os, sshkeys ]
   }
 
 }
