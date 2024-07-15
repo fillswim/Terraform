@@ -5,19 +5,19 @@ locals {
 
 }
 
-# OCFS NODES
-resource "proxmox_vm_qemu" "ocfs_servers_altlinux" {
+# OCFS NODES XTP
+resource "proxmox_vm_qemu" "ocfs_altlinux_v9" {
 
   count       = local.count
 
   vmid        = 2000 + local.start_id + count.index
 
   # Нода Proxmox, на которой будут разворачиваться ВМ-ки
-  target_node = "proxmox1"
+  target_node = "proxmox3"
   # Название ВМ-ок
-  name = "ocfs-node-${count.index + 1}"
+  name = "ocfs-node-v9-${count.index + 1}"
   # Описание
-  desc = "ocfs-node-${count.index + 1}"
+  desc = "ocfs-node-v9-${count.index + 1}"
 
   # Клонируемый образ ВМ
   clone = "alt-p10-cloud-v9"
