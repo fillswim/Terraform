@@ -1,5 +1,5 @@
 locals {
-  start_id = 251
+  start_id = 71
   count = 1
 }
 
@@ -27,8 +27,6 @@ resource "proxmox_vm_qemu" "test_redos" {
 
   # VM Cloud-Init Settings
   os_type     = "cloud-init"
-  # Место хранения Cloud-Init образа
-  cloudinit_cdrom_storage = "local-lvm"
 
   # Включить гостевой агент
   agent       = 1
@@ -44,9 +42,9 @@ resource "proxmox_vm_qemu" "test_redos" {
   # Тип контроллера SCSI для эмуляции (lsi, lsi53c810, megasas, pvscsi, virtio-scsi-pci, virtio-scsi-single)
   scsihw      = "virtio-scsi-single"
   # Разрешить загрузку с ide2
-  bootdisk    = "ide2"
+  bootdisk    = "ide0"
   # Порядок загрузки
-  boot        = "order=scsi0;ide2;net0"
+  boot        = "order=scsi0;ide0;net0"
 
   # Создать virtio0 диск
   disks {
@@ -55,6 +53,13 @@ resource "proxmox_vm_qemu" "test_redos" {
         disk {
           storage = "local-lvm"
           size    = "50"
+        }
+      }
+    }
+    ide {
+      ide0 {
+        cloudinit {
+          storage = "local-lvm"
         }
       }
     }
