@@ -1,9 +1,9 @@
 locals {
-  start_id = 70
+  start_id = 251
   count = 1
 }
 
-resource "proxmox_vm_qemu" "test_oracle_linux" {
+resource "proxmox_vm_qemu" "test_redos" {
 
   # Количество
   count       = local.count
@@ -15,12 +15,12 @@ resource "proxmox_vm_qemu" "test_oracle_linux" {
   # Нода Proxmox, на которой будут разворачиваться ВМ-ки
   target_node = "proxmox2"
   # Название ВМ-ок
-  name        = "test-oracle-linux-${count.index + 1}"
+  name        = "test-redos-${count.index + 1}"
   # Описание
-  desc        = "test-oracle-linux-${count.index + 1}"
+  desc        = "test-redos-${count.index + 1}"
 
   # Клонируемый образ ВМ
-  clone       = "oracle-linux-9.4-cloud"
+  clone       = "redos-7.3-cloud"
 
   # Следует ли запускать виртуальную машину после запуска узла PVE
   onboot      = true
@@ -34,7 +34,7 @@ resource "proxmox_vm_qemu" "test_oracle_linux" {
   agent       = 1
 
   # Настройки CPU
-  cores       = 4
+  cores       = 6
   sockets     = 1
   cpu         = "host"
 
@@ -42,24 +42,14 @@ resource "proxmox_vm_qemu" "test_oracle_linux" {
   memory      = 8192
 
   # Тип контроллера SCSI для эмуляции (lsi, lsi53c810, megasas, pvscsi, virtio-scsi-pci, virtio-scsi-single)
-  # scsihw      = "virtio-scsi-pci"
   scsihw      = "virtio-scsi-single"
   # Разрешить загрузку с ide2
   bootdisk    = "ide2"
   # Порядок загрузки
-  # boot        = "order=virtio0;ide2;net0"
   boot        = "order=scsi0;ide2;net0"
 
   # Создать virtio0 диск
   disks {
-    # virtio {
-    #   virtio0 {
-    #     disk {
-    #       storage = "local-lvm"
-    #       size    = "34"
-    #     }
-    #   }
-    # }
     scsi {
       scsi0 {
         disk {
@@ -79,15 +69,8 @@ resource "proxmox_vm_qemu" "test_oracle_linux" {
   # Настройки IP и шлюза
   ipconfig0   = "ip=192.168.2.${local.start_id + count.index}/24,gw=192.168.2.1"
 
-  # (Optional) Default User
-  # ciuser = "your-username"
-
-  # (Optional) Add your SSH KEY
-  # sshkeys = <<EOF
-  # #YOUR-PUBLIC-SSH-KEY
-  # EOF
-
   lifecycle {
+    # prevent_destroy = true
     ignore_changes = [ boot, bootdisk, ciuser, qemu_os, sshkeys ]
   }
 
