@@ -31,11 +31,11 @@ variable "vm_name" {
 }
 
 variable "proxmox_node" {
-  default = "proxmox3"
+  default = "proxmox2"
 }
 
 variable "clone_vm_image" {
-  default = "ubuntu-22.04-cloud"
+  default = "redos-7.3.4-cloud"
 }
 
 variable "memory" {

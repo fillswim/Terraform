@@ -10,9 +10,9 @@ resource "proxmox_vm_qemu" "redos_server" {
   # Нода Proxmox, на которой будут разворачиваться ВМ-ки
   target_node = var.proxmox_node
   # Название ВМ-ок
-  name = "${var.vm_name}-${count.index + 1}"
+  name = "${var.vm_name}${count.index + 1}"
   # Описание
-  desc = "${var.vm_name}-${count.index + 1}"
+  desc = "${var.vm_name}${count.index + 1}"
 
   # Клонируемый образ ВМ
   clone = var.clone_vm_image

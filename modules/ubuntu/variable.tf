@@ -5,6 +5,15 @@ variable "start_vmid" {
   }
 }
 
+variable "cpu_cores" {
+  default = {
+    "proxmox1" = 4
+    "proxmox2" = 6
+    "proxmox3" = 4
+    "proxmox4" = 6
+  }
+}
+
 variable "count_vms" {
   default = 1
 }
@@ -23,10 +32,6 @@ variable "vm_name" {
 
 variable "proxmox_node" {
   default = "proxmox3"
-}
-
-variable "cpu_cores" {
-  default = 6
 }
 
 variable "clone_vm_image" {

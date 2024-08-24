@@ -27,7 +27,7 @@ resource "proxmox_vm_qemu" "server" {
   agent = 1
 
   # Настройки CPU
-  cores   = var.cpu_cores
+  cores   = var.cpu_cores[var.proxmox_node]
   sockets = 1
   cpu     = "host"
 
