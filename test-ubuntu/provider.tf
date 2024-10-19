@@ -8,7 +8,8 @@ terraform {
       # version = "~> 2.0"
       # version = "2.9.14"
       # version = "3.0.1-rc1"
-      version = "3.0.1-rc3"
+      # version = "3.0.1-rc3"
+      version = "3.0.1-rc4"
     }
   }
 }
@@ -42,8 +43,5 @@ provider "proxmox" {
   pm_api_token_secret = var.proxmox_api_token_secret
 
   pm_debug = true
-
-  # (Optional) Skip TLS Verification
-  # pm_tls_insecure = true
 
 }

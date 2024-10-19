@@ -27,8 +27,8 @@ module "k8s1-redos-app" {
   }
 
   source    = "../modules/redos"
-  count_vms = 2
-  ip        = 114
+  count_vms = 4
+  ip        = 116
 
   vm_name        = "k8s1-redos-app0"
   clone_vm_image = "redos-7.3.4-cloud"

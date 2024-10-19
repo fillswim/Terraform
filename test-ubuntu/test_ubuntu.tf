@@ -1,3 +1,7 @@
+locals {
+  subnet = "${var.subnet_octet_1}.${var.subnet_octet_2}.${var.subnet_octet_3}"
+}
+
 resource "proxmox_vm_qemu" "server" {
 
   # Количество
@@ -5,7 +9,7 @@ resource "proxmox_vm_qemu" "server" {
 
   # 1000 - prod
   # 2000 - test
-  vmid = var.env == "prod" ? (var.start_vmid["prod"] + var.ip + count.index) : (var.start_vmid["test"] + var.ip + count.index)
+  vmid = var.env == "prod" ? (var.start_vmid["prod"] + var.subnet_octet_4 + count.index) : (var.start_vmid["test"] + var.subnet_octet_4 + count.index)
 
   # Нода Proxmox, на которой будут разворачиваться ВМ-ки
   target_node = var.proxmox_node
@@ -48,7 +52,7 @@ resource "proxmox_vm_qemu" "server" {
       virtio0 {
         disk {
           storage = "local-lvm"
-          size = var.disk_size
+          size    = var.disk_size
         }
       }
     }
@@ -61,14 +65,20 @@ resource "proxmox_vm_qemu" "server" {
     }
   }
 
+
+  vga {
+    type = var.vga_type
+  }
+
   # Конфигурация сети
   network {
     model  = "virtio"
     bridge = "vmbr0"
+    tag    = var.vlan
   }
 
   # Настройки IP и шлюза
-  ipconfig0 = "ip=192.168.2.${var.ip + count.index}/24,gw=192.168.2.1"
+  ipconfig0 = "ip=${local.subnet}.${var.subnet_octet_4 + count.index}/${var.subnet_mask},gw=${local.subnet}.${var.gateway_octet_4}"
 
   lifecycle {
     # prevent_destroy = true

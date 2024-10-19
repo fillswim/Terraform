@@ -9,7 +9,8 @@ terraform {
       # version = "~> 2.0"
       # version = "2.9.14"
       # version = "3.0.1-rc1"
-      version = "3.0.1-rc3"
+      # version = "3.0.1-rc3"
+      version = "3.0.1-rc4"
     }
   }
 }
