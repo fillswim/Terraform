@@ -4,6 +4,7 @@ module "test-ubuntu" {
     proxmox = proxmox.my_proxmox
   }
 
+  # source = "../modules/ubuntu"
   source = "github.com/fillswim/Terraform/modules/ubuntu"
 
   count_vms = 1
