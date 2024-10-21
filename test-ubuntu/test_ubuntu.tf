@@ -22,7 +22,7 @@ resource "proxmox_vm_qemu" "server" {
   clone = var.clone_vm_image
 
   # Следует ли запускать виртуальную машину после запуска узла PVE
-  onboot = true
+  onboot = var.onboot
 
   # VM Cloud-Init Settings
   os_type = "cloud-init"

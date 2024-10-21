@@ -123,3 +123,7 @@ variable "memory" {
 variable "disk_size" {
   default = "50"
 }
+
+variable "onboot" {
+  default = false
+}
