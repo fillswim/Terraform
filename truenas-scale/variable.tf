@@ -1,4 +1,3 @@
-
 variable "start_vmid" {
   default = {
     "prod" = 1000
@@ -60,9 +59,9 @@ variable "proxmox_node" {
   default = "proxmox3"
 }
 
-variable "clone_vm_image" {
-  default = "ubuntu-22.04-cloud"
-}
+# variable "clone_vm_image" {
+#   default = "ubuntu-22.04-cloud"
+# }
 
 # type = "serial0"
 variable "vga_type" {
