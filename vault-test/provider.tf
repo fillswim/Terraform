@@ -15,8 +15,10 @@ provider "vault" {
 
 variable "vault_url" {
   type = string
+  sensitive = true
 }
 
 variable "vault_token" {
   type = string
+  sensitive = true
 }
