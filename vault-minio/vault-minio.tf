@@ -2,7 +2,7 @@
 terraform {
   backend "s3" {
     bucket = "terraform-state"
-    key    = "vault-grafana/terraform.tfstate" # ! Необхожимо изменить для каждой папки !
+    key    = "vault-minio/terraform.tfstate" # ! Необходимо изменить для каждой папки !
 
     # endpoints = {
     #   s3 = "http://api.minio.fillswim.local"
@@ -60,40 +60,40 @@ data "vault_auth_backend" "kubernetes" {
 # ================================== Policies ==================================
 
 # Добавить полилитику для разработчиков
-resource "vault_policy" "grafana_ui_secret_policy" {
-  name   = "grafana-ui-secret-policy"
-  policy = file("policies/grafana-ui-secret-policy.hcl")
+resource "vault_policy" "minio_secret_policy" {
+  name   = "minio-secret-policy"
+  policy = file("policies/minio-secret-policy.hcl")
 }
 
 # ================================== Folders ===================================
 
-# Включить механизм KV2 для папки "grafana"
-resource "vault_mount" "grafana" {
-  path        = "grafana"
+# Включить механизм KV2 для папки "minio"
+resource "vault_mount" "minio" {
+  path        = "minio"
   type        = "kv-v2"
-  description = "KV2 Secrets Engine for Grafana"
+  description = "KV2 Secrets Engine for MinIO"
 }
 
 # ==================================== Roles ===================================
 
-# Создание роли для доступа к секрету Grafana 
-resource "vault_kubernetes_auth_backend_role" "grafana_ui_secret_role" {
+# Создание роли для доступа к секрету MinIO 
+resource "vault_kubernetes_auth_backend_role" "minio_secret_role" {
   # Из data vault_auth_backend.kubernetes
   # backend                          = data.vault_auth_backend.kubernetes.path
   # Из Remote State
   backend                          = data.terraform_remote_state.vault_config_k8s1_rhel.outputs.vault_auth_backend_kubernetes_path
-  role_name                        = "grafana-ui-secret-role"
+  role_name                        = "minio-secret-role"
   bound_service_account_names      = ["default"]
-  bound_service_account_namespaces = ["grafana"]
+  bound_service_account_namespaces = ["minio", "loki"]
   token_ttl                        = 86400 # 24 часа 
-  token_policies                   = ["default", vault_policy.grafana_ui_secret_policy.name]
+  token_policies                   = ["default", vault_policy.minio_secret_policy.name]
   audience                         = "vault"
 }
 
 # =================================== Secret ===================================
 
-# Создать секрет для Grafana UI
-resource "vault_generic_secret" "grafana_ui_secret" {
-  path      = "${vault_mount.grafana.path}/grafana-ui-secret"
-  data_json = file(".secrets/grafana-ui-secret.json")
+# Создать секрет для MinIO
+resource "vault_generic_secret" "minio_secret" {
+  path      = "${vault_mount.minio.path}/minio-secret"
+  data_json = file(".secrets/minio-secret.json")
 }
