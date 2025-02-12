@@ -84,7 +84,7 @@ resource "vault_kubernetes_auth_backend_role" "rabbitmq_secret_role" {
   backend                          = data.terraform_remote_state.vault_config_k8s1_rhel.outputs.vault_auth_backend_kubernetes_path
   role_name                        = "rabbitmq-secret-role"
   bound_service_account_names      = ["default"]
-  bound_service_account_namespaces = ["rabbitmq", "rabbitmq-apps"]
+  bound_service_account_namespaces = ["rabbitmq", "rabbitmq-apps", "rabbitmq-publisher", "rabbitmq-consumer"]
   token_ttl                        = 86400 # 24 часа 
   token_policies                   = ["default", vault_policy.rabbitmq_secret_policy.name]
   audience                         = "vault"
