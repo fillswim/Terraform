@@ -1,18 +1,18 @@
 
-module "demo-test-instance" {
+module "k8s1-ubuntu-instances" {
 
   source = "/home/fill/Terraform-Modules/OpenStack/Instance"
   # source = "github.com/fillswim/Terraform-Modules/OpenStack/Instance"
 
   # Project
-  project-name = "demo-test"
+  project-name = "k8s1-ubuntu"
 
   # Count of instances
   instance-count       = 2
   starting-host-number = 11 # Стартовый номер хоста (для расчета IP адреса)
 
   # Instance
-  instance-name-prefix = "demo-test"
+  instance-name-prefix = "k8s1-ubuntu"
   admin-password       = "123qweasd"
 
   # Flavor
@@ -28,7 +28,7 @@ module "demo-test-instance" {
   # Floating IP address
   create-floating-ip = false
   # public-network-name = "public"
-  # floating-ip-v4      = "172.16.4.10"
+  # floating-ip-v4      = "172.16.11.10"
 
   # Keypair
   keypair-name = "keypair-1"

@@ -1,9 +1,20 @@
 
-# # ================================ Network ================================
+# # Найти проект по имени
+# data "openstack_identity_project_v3" "project" {
+#   name = "k8s1-ubuntu"
+# }
+
+# # Выводим id проекта
+# output "project_id" {
+#   value = data.openstack_identity_project_v3.project.id
+# }
+
+# # # ================================ Network ================================
 
 # # Находим сеть по имени
 # data "openstack_networking_network_v2" "private_network" {
-#   name = "private-network"
+#   tenant_id = data.openstack_identity_project_v3.project.id
+#   name      = "private-network"
 # }
 
 # # Выводим имя сети
@@ -42,4 +53,16 @@
 # # Выводим cidr подсети
 # output "private_subnet_cidr" {
 #   value = data.openstack_networking_subnet_v2.private_subnet.cidr
+# }
+
+# # ================================ Tenant ================================
+
+# # Выводим имя проекта
+# data "openstack_identity_project_v3" "project" {
+#   name = "k8s1-ubuntu"
+# }
+
+# # Выводим id проекта
+# output "project_id" {
+#   value = data.openstack_identity_project_v3.project.id
 # }
