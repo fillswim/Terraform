@@ -36,7 +36,8 @@ resource "proxmox_vm_qemu" "nexus_ubuntu" {
   cpu     = "host"
 
   # Настройки оперативная память
-  memory = 8192
+  balloon = 8192
+  memory  = 16384
 
   # Тип контроллера SCSI для эмуляции (lsi, lsi53c810, megasas, pvscsi, virtio-scsi-pci, virtio-scsi-single)
   scsihw = "virtio-scsi-pci"
@@ -73,7 +74,7 @@ resource "proxmox_vm_qemu" "nexus_ubuntu" {
   ipconfig0 = "ip=192.168.2.${local.nexus_ubuntu_id}/24,gw=192.168.2.1"
 
   lifecycle {
-    ignore_changes = [ bootdisk, ciuser, qemu_os, sshkeys ]
+    ignore_changes = [bootdisk, ciuser, qemu_os, sshkeys]
   }
 
 }
