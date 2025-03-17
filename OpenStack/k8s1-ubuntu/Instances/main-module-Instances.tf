@@ -36,3 +36,7 @@ module "k8s1-ubuntu-instances" {
   # Networks
   secgroup-name = "secgroup-1"
 }
+
+output "instance-details" {
+  value = module.k8s1-ubuntu-instances.details
+}
