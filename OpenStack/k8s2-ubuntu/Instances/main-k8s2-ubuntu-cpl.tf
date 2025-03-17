@@ -1,18 +1,18 @@
 
-module "k8s1-ubuntu-instances" {
+module "k8s2-ubuntu-cpl" {
 
   source = "/home/fill/Terraform-Modules/OpenStack/Instance"
   # source = "github.com/fillswim/Terraform-Modules/OpenStack/Instance"
 
   # Project
-  project-name = "k8s1-ubuntu"
+  project-name = "k8s2-ubuntu"
 
   # Count of instances
-  instance-count       = 2
+  instance-count       = 3
   starting-host-number = 11 # Стартовый номер хоста (для расчета IP адреса)
 
   # Instance
-  instance-name-prefix = "k8s1-ubuntu"
+  instance-name-prefix = "k8s2-ubuntu-cpl"
   admin-password       = "123qweasd"
 
   # Flavor
@@ -37,6 +37,7 @@ module "k8s1-ubuntu-instances" {
   secgroup-name = "secgroup-1"
 }
 
-output "instance-details" {
-  value = module.k8s1-ubuntu-instances.details
+output "k8s2-ubuntu-cpl" {
+  description = "Details of the created instances"
+  value       = module.k8s2-ubuntu-cpl.details
 }
