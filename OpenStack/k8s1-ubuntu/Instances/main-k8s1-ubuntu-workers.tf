@@ -8,7 +8,7 @@ module "k8s1-ubuntu-workers" {
   project-name = "k8s1-ubuntu"
 
   # Count of instances
-  instance-count       = 2
+  instance-count       = 3
   starting-host-number = 14 # Стартовый номер хоста (для расчета IP адреса)
 
   # Instance
