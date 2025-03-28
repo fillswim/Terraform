@@ -1,4 +1,5 @@
 
+# Получить id приватной сети
 data "openstack_networking_network_v2" "private_network" {
   name = var.private-network-name
 }

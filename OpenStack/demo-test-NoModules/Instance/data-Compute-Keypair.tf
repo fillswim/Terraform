@@ -1,4 +1,4 @@
-
+# Получить id пары ключей
 data "openstack_compute_keypair_v2" "keypair_1" {
   name = var.keypair-name
 }
