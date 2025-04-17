@@ -6,7 +6,7 @@ module "test-redos" {
 
   source    = "../modules/redos"
   count_vms = 1
-  ip        = 251
+  ip        = 252
 
   vm_name        = "test1-redos"
   clone_vm_image = "redos-7.3.4-cloud"

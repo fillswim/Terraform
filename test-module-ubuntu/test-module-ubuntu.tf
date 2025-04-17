@@ -1,6 +1,6 @@
 module "test-ubuntu" {
 
-  source          = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc4/ubuntu"
+  source          = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc4/v1/instance"
 
   count_vms       = var.count_vms
   subnet_octet_1  = var.subnet_octet_1
