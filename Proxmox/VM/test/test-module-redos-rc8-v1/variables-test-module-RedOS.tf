@@ -104,7 +104,7 @@ variable "vga_type" {
 
 variable "scsihw" {
   type    = string
-  default = "virtio-scsi-pci"
+  default = "virtio-scsi-single" # RedOS
 }
 
 variable "bootdisk" {
@@ -114,7 +114,7 @@ variable "bootdisk" {
 
 variable "boot_order" {
   type    = string
-  default = "order=virtio0;ide0;net0"
+  default = "order=scsi0;ide0;net0" # RedOS
 }
 
 variable "cloudinit_disk_slot" {
@@ -134,7 +134,7 @@ variable "cloudinit_disk_storage" {
 
 variable "disk_slot" {
   type    = string
-  default = "virtio0"
+  default = "scsi0" # RedOS
 }
 
 variable "disk_type" {

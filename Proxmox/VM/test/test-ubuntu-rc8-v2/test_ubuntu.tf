@@ -79,7 +79,7 @@ resource "proxmox_vm_qemu" "server" {
   searchdomain = var.searchdomain
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
     ignore_changes  = [boot, bootdisk, ciuser, qemu_os, sshkeys]
   }
 

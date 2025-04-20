@@ -81,11 +81,6 @@ variable "onboot" {
   default = false
 }
 
-variable "prevent_destroy" {
-  type    = bool
-  default = false
-}
-
 variable "nameserver" {
   type    = string
   default = "192.168.2.11 192.168.2.12"
