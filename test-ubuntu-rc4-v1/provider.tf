@@ -10,7 +10,7 @@ terraform {
       # version = "3.0.1-rc1"
       # version = "3.0.1-rc3"
       version = "3.0.1-rc4"
-      # version = "3.0.1-rc6"
+      # version = "3.0.1-rc8"
     }
   }
 }
