@@ -33,8 +33,7 @@ resource "proxmox_vm_qemu" "server" {
   # Настройки CPU
   cores   = var.cpu_cores[var.proxmox_node]
   sockets = 1
-  # cpu     = "host"
-  cpu_type = "host"
+  cpu     = "host"
 
   # Настройки оперативная память
   memory = var.memory
@@ -47,40 +46,24 @@ resource "proxmox_vm_qemu" "server" {
   # Порядок загрузки
   boot = "order=virtio0;ide0;net0"
 
-  disk {
-    slot    = "ide0"
-    type    = "cloudinit"
-    storage = "local-lvm"
+  # Диски
+  disks {
+    virtio {
+      virtio0 {
+        disk {
+          storage = "local-lvm"
+          size    = var.disk_size
+        }
+      }
+    }
+    ide {
+      ide0 {
+        cloudinit {
+          storage = "local-lvm"
+        }
+      }
+    }
   }
-
-  disk {
-    slot    = "virtio0"
-    type    = "disk"
-    size    = var.disk_size
-    storage = "local-lvm"
-    format  = "raw"
-  }
-
-
-
-  # # Диски
-  # disks {
-  #   virtio {
-  #     virtio0 {
-  #       disk {
-  #         storage = "local-lvm"
-  #         size    = var.disk_size
-  #       }
-  #     }
-  #   }
-  #   ide {
-  #     ide0 {
-  #       cloudinit {
-  #         storage = "local-lvm"
-  #       }
-  #     }
-  #   }
-  # }
 
 
   vga {
@@ -89,14 +72,13 @@ resource "proxmox_vm_qemu" "server" {
 
   # Конфигурация сети
   network {
-    id     = 0
     model  = "virtio"
     bridge = "vmbr0"
     tag    = var.vlan
   }
 
   # Настройки IP и шлюза
-  ipconfig0 = "ip=${local.subnet}.${var.subnet_octet_4 + count.index}/${var.subnet_mask},gw=${local.subnet}.${var.gateway_octet_4}"
+  ipconfig0    = "ip=${local.subnet}.${var.subnet_octet_4 + count.index}/${var.subnet_mask},gw=${local.subnet}.${var.gateway_octet_4}"
 
   lifecycle {
     # prevent_destroy = true

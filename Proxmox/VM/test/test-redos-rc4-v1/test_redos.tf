@@ -1,60 +1,65 @@
 locals {
-
-  start_id = 181
-  count = 4
-
+  subnet = "${var.subnet_octet_1}.${var.subnet_octet_2}.${var.subnet_octet_3}"
 }
 
-# OCFS NODES XTP
-resource "proxmox_vm_qemu" "ocfs_altlinux_v9" {
+resource "proxmox_vm_qemu" "redos_server" {
 
-  count       = local.count
+  # Количество
+  count = var.count_vms
 
-  vmid        = 2000 + local.start_id + count.index
+  # 1000 - prod
+  # 2000 - test
+  vmid = var.env == "prod" ? (var.start_vmid["prod"] + var.ip + count.index) : (var.start_vmid["test"] + var.ip + count.index)
 
   # Нода Proxmox, на которой будут разворачиваться ВМ-ки
-  target_node = "proxmox3"
+  target_node = var.proxmox_node
   # Название ВМ-ок
-  name = "ocfs-node-v9-${count.index + 1}"
+  name = "${var.vm_name}-${count.index + 1}"
   # Описание
-  desc = "ocfs-node-v9-${count.index + 1}"
+  desc = "${var.vm_name}-${count.index + 1}"
 
   # Клонируемый образ ВМ
-  clone = "alt-p10-cloud-v9"
+  clone = var.clone_vm_image
 
   # Следует ли запускать виртуальную машину после запуска узла PVE
   onboot = true
 
   # VM Cloud-Init Settings
   os_type = "cloud-init"
-  # Место хранения Cloud-Init образа
-  cloudinit_cdrom_storage = "local-lvm"
 
   # Включить гостевой агент
   agent = 1
 
   # Настройки CPU
-  cores   = 4
+  # cores   = var.cpu_cores
+  cores   = var.cpu_cores[var.proxmox_node]
   sockets = 1
   cpu     = "host"
 
   # Настройки оперативная память
-  memory = 4096
+  memory = var.memory
 
   # Тип контроллера SCSI для эмуляции (lsi, lsi53c810, megasas, pvscsi, virtio-scsi-pci, virtio-scsi-single)
-  scsihw = "virtio-scsi-pci"
+  scsihw = "virtio-scsi-single"
   # Разрешить загрузку с ide2
-  bootdisk = "ide2"
+  bootdisk = "ide0"
   # Порядок загрузки
-  boot = "order=virtio0;ide2;net0"
+  boot = "order=scsi0;ide0;net0"
 
   # Создать virtio0 диск
   disks {
-    virtio {
-      virtio0 {
+    scsi {
+      scsi0 {
         disk {
           storage = "local-lvm"
-          size    = "35"
+          size    = var.disk_size
+        }
+      }
+    }
+    ide {
+      ide0 {
+        cloudinit {
+          storage = "local-lvm"
         }
       }
     }
@@ -67,10 +72,14 @@ resource "proxmox_vm_qemu" "ocfs_altlinux_v9" {
   }
 
   # Настройки IP и шлюза
-  ipconfig0 = "ip=192.168.2.${local.start_id + count.index}/24,gw=192.168.2.1"
+  ipconfig0 = "ip=192.168.2.${var.ip + count.index}/24,gw=192.168.2.1"
+
+  nameserver   = "192.168.2.11 192.168.2.12"
+  searchdomain = "fillswim.local"
 
   lifecycle {
-    ignore_changes = [ bootdisk, ciuser, qemu_os, sshkeys, boot ]
+    # prevent_destroy = true
+    ignore_changes = [boot, bootdisk, ciuser, qemu_os, sshkeys]
   }
 
 }
