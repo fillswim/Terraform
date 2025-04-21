@@ -79,7 +79,7 @@ variable "proxmox_node" {
 
 variable "clone_vm_image" {
   type    = string
-  default = "ubuntu-22.04-cloud"
+  default = "alt-p10-cloud-vanilla" # Altlinux
 }
 
 variable "memory" {
@@ -95,7 +95,7 @@ variable "onboot" {
 # type = "serial0"
 variable "vga_type" {
   type    = string
-  default = "virtio"
+  default = "virtio" # Ubuntu, Altlinux
 }
 
 # ================================================
@@ -104,22 +104,22 @@ variable "vga_type" {
 
 variable "scsihw" {
   type    = string
-  default = "virtio-scsi-single" # RedOS
+  default = "virtio-scsi-pci" # Ubuntu, Altlinux
 }
 
 variable "bootdisk" {
   type    = string
-  default = "ide0"
+  default = "ide0" # Altlinux
 }
 
 variable "boot_order" {
   type    = string
-  default = "order=scsi0;ide0;net0" # RedOS
+  default = "order=virtio0;ide0;net0" # Altlinux
 }
 
 variable "cloudinit_disk_slot" {
   type    = string
-  default = "ide0"
+  default = "ide0" # Altlinux
 }
 
 variable "cloudinit_disk_type" {
@@ -134,7 +134,7 @@ variable "cloudinit_disk_storage" {
 
 variable "disk_slot" {
   type    = string
-  default = "scsi0" # RedOS
+  default = "virtio0" # Ubuntu, Altlinux
 }
 
 variable "disk_type" {
@@ -173,7 +173,7 @@ variable "extra_disks_size" {
 
 variable "extra_disks_slot_type" {
   type    = string
-  default = "scsi" # RedOS
+  default = "virtio" # Ubuntu, Altlinux
 }
 
 variable "extra_disks_storage" {

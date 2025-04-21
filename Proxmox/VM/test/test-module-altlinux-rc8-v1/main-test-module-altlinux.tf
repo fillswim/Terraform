@@ -1,4 +1,4 @@
-module "test-ubuntu" {
+module "test-altlinux" {
 
   source = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc8/v1/instance"
 
@@ -38,5 +38,5 @@ module "test-ubuntu" {
 }
 
 output "details" {
-  value = module.test-ubuntu.details
+  value = module.test-altlinux.details
 }

@@ -27,7 +27,14 @@ module "test-redos" {
   scsihw     = var.scsihw
   boot_order = var.boot_order
   disk_slot  = var.disk_slot
-
+  bootdisk   = var.bootdisk
+  
+  # Extra Disks
+  extra_disks_count     = var.extra_disks_count
+  extra_disks_size      = var.extra_disks_size
+  extra_disks_slot_type = var.extra_disks_slot_type
+  extra_disks_storage   = var.extra_disks_storage
+  
 }
 
 output "details" {
