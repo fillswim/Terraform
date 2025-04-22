@@ -1,4 +1,3 @@
-# Variables for 3.0.1-rc8 v1
 
 # =============================================
 #                     Network
@@ -47,6 +46,11 @@ variable "network_model" {
 variable "network_bridge" {
   type    = string
   default = "vmbr0"
+}
+
+variable "nameserver" {
+  type    = string
+  default = "192.168.2.1"
 }
 
 variable "searchdomain" {
