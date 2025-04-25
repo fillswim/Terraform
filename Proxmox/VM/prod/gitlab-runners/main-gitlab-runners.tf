@@ -1,6 +1,6 @@
 module "gitlab-runner-docker" {
 
-  source = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc8/v1/instance"
+  source = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc8/v1/instance-protected"
 
   # Различные переменные для каждого gitlab-runner
   vm_name        = var.gitlab_runners_docker_vm_name
@@ -35,7 +35,7 @@ module "gitlab-runner-docker" {
 
 module "gitlab-runner-ubuntu" {
 
-  source = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc8/v1/instance"
+  source = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc8/v1/instance-protected"
 
   # Различные переменные для каждого gitlab-runner
   vm_name        = var.gitlab_runners_ubuntu_vm_name

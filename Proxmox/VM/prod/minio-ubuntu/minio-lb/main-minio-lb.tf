@@ -1,6 +1,6 @@
 module "minio-lb" {
 
-  source = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc8/v1/instance"
+  source = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc8/v1/instance-protected"
 
   # General
   count_vms      = var.count_vms

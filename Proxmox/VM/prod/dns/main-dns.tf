@@ -1,6 +1,6 @@
 module "dns-proxmox1" {
 
-  source = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc8/v1/instance"
+  source = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc8/v1/instance-protected"
 
   # Различные переменные для каждого DNS
   vm_name        = var.dns_1_vm_name
@@ -35,7 +35,7 @@ module "dns-proxmox1" {
 
 module "dns-proxmox3" {
 
-  source = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc8/v1/instance"
+  source = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc8/v1/instance-protected"
 
   # Различные переменные для каждого DNS
   vm_name        = var.dns_2_vm_name
