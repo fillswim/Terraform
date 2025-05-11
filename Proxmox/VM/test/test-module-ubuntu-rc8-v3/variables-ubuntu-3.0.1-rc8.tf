@@ -183,15 +183,10 @@ variable "extra_disks_storage" {
 }
 
 # ===============================================
-#                   Fixed VMID
+#                   Node Splitting
 # ===============================================
 
-variable "fixed_vmid" {
-  type    = number
-  default = 0
-}
-
-variable "fixed_name" {
-  type    = string
-  default = ""
+variable "node_splitting" {
+  type    = bool
+  default = false
 }

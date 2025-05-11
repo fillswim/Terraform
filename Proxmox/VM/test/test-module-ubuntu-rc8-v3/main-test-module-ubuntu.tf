@@ -1,13 +1,12 @@
-module "repository_oracle" {
+module "test-ubuntu" {
 
-  source = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc8/v1/instance-protected"
+  source = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc8/v3/instance"
 
   # General
   count_vms      = var.count_vms
+  node_splitting = var.node_splitting
   env            = var.env
   vm_name        = var.vm_name
-  fixed_vmid     = var.fixed_vmid # Fixed VM ID
-  fixed_name     = var.fixed_name # Fixed VM Name
   proxmox_node   = var.proxmox_node
   clone_vm_image = var.clone_vm_image
 
@@ -40,5 +39,5 @@ module "repository_oracle" {
 }
 
 output "details" {
-  value = module.repository_oracle.details
+  value = module.test-ubuntu.details
 }

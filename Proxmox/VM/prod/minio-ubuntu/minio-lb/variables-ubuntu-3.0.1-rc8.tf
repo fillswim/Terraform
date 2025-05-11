@@ -181,3 +181,12 @@ variable "extra_disks_storage" {
   type    = string
   default = "HDD"
 }
+
+# ===============================================
+#                   Node Splitting
+# ===============================================
+
+variable "node_splitting" {
+  type    = bool
+  default = false
+}

@@ -1,6 +1,6 @@
 module "minio-lb" {
 
-  source = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc8/v1/instance-protected"
+  source = "/home/fill/Terraform-Modules/Proxmox/Telmate/3.0.1-rc8/v3/instance-protected"
 
   # General
   count_vms      = var.count_vms
@@ -8,6 +8,7 @@ module "minio-lb" {
   vm_name        = var.vm_name
   proxmox_node   = var.proxmox_node
   clone_vm_image = var.clone_vm_image
+  node_splitting = var.node_splitting
 
   # Network
   subnet_octet_1  = var.subnet_octet_1
