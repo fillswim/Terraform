@@ -7,6 +7,17 @@ variable "cpu_cores" {
     "proxmox5" = 6
   }
 }
+
+# будут ли TRIM/UNMAP команды передаваться из гостевой ОС на уровень хранилища
+# Только для local-lvm (LVM-Thin)
+variable "discard" {
+  default = {
+    "local-lvm" = "on"
+    "local"     = "ignore"
+    "SSD"       = "ignore"
+    "HDD"       = "ignore"
+  }
+}
 # ================================================
 #                     Image Settings
 # ================================================
@@ -30,7 +41,7 @@ variable "cloud_init_file_datastore" {
 #                     Network
 # =============================================
 
-variable "vlan" {
+variable "vlan_id" {
   type    = number
   default = 0
 }
@@ -65,7 +76,7 @@ variable "searchdomain" {
 }
 
 # ================================================
-#                     VM-s
+#                     VM Settings
 # ================================================
 
 variable "count_vms" {
@@ -108,6 +119,11 @@ variable "cpu_type" {
   default = "host"
 }
 
+variable "protection" {
+  type    = bool
+  default = false
+}
+
 # ================================================
 #                     Root Disks
 # ================================================
@@ -132,14 +148,41 @@ variable "root_disk_iothread" {
   default = true
 }
 
-
-# будут ли TRIM/UNMAP команды передаваться из гостевой ОС на уровень хранилища
-variable "root_disk_discard" {
-  type    = string
-  default = "ignore"
+variable "root_disk_backup" {
+  type    = bool
+  default = true
 }
 
-variable "root_disk_backup" {
+# ===============================================
+#                   Extra Disks
+# ===============================================
+
+variable "extra_disks_count" {
+  type    = number
+  default = 0
+}
+
+variable "extra_disks_datastore_name" {
+  type    = string
+  default = "HDD"
+}
+
+variable "extra_disks_size" {
+  type    = number
+  default = 100
+}
+
+variable "extra_disks_interface" {
+  type    = string
+  default = "virtio"
+}
+
+variable "extra_disks_iothread" {
+  type    = bool
+  default = true
+}
+
+variable "extra_disks_backup" {
   type    = bool
   default = true
 }

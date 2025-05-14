@@ -20,7 +20,10 @@ locals {
   # разделение IP-адреса на части
   ip_part = split(".", local.ip_address)
   # формирование ID виртуальной машины
-  vm_id = local.ip_part[1] * 1000000 + local.ip_part[2] * 1000 + local.ip_part[3]
+  # vm_id = ( local.ip_part[1] * 1000000 + 
+  #           local.ip_part[2] * 1000 + 
+  #           local.ip_part[3] + 
+  #           count.index)
 
   # для IP-адреса в блоке ip_config
   ip_address_and_mask = join("/", [local.ip_address, local.subnet_mask])
@@ -33,21 +36,50 @@ locals {
   iso_datastore_path = join(":", [var.cloud_init_file_datastore, "iso"])
   image_path         = join("/", [local.iso_datastore_path, var.image_name])
 
+  # Добавление дополнительных дисков
+  # Генерация списка из объектов с дисками [{}, {}, {}]
+  extra_disks = [
+    for i in range(var.extra_disks_count) : {
+      datastore_id = var.extra_disks_datastore_name
+      size         = var.extra_disks_size
+      interface    = "${var.extra_disks_interface}${i + 1}"
+      iothread     = var.extra_disks_iothread
+      discard      = var.discard[var.extra_disks_datastore_name]
+      backup       = var.extra_disks_backup
+    }
+  ]
+
 }
 
-output "vm_id" {
-  value = local.ip_address_and_mask
-}
+# Вывод ID виртуальной машины
+# output "vm_id" {
+#   value = local.ip_address_and_mask
+# }
 
-output "image_path" {
-  value = local.image_path
-}
+# Вывод пути к образам
+# output "image_path" {
+#   value = local.image_path
+# }
+
+# Вывод списка дисков
+# output "extra_disks" {
+#   value = local.extra_disks
+# }
 
 resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
 
+  # address_count = join("/", [local.ip_address + count.index, local.subnet_mask])
+
+  count = var.count_vms
+
   name      = var.vm_name
   node_name = var.proxmox_node
-  vm_id     = local.vm_id
+  # формирование ID виртуальной машины
+  # vm_id     = local.vm_id
+  # cidrhost(local.ip_address_and_mask, local.ip_part[3] + count.index)
+  vm_id = ( local.ip_part[1] * 1000000 + 
+            local.ip_part[2] * 1000 + 
+            local.ip_part[3] + count.index)
 
   # should be true if qemu agent is not installed / enabled on the VM
   stop_on_destroy = var.stop_on_destroy
@@ -65,7 +97,8 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
     dedicated = var.memory
   }
 
-  on_boot = var.on_boot
+  on_boot    = var.on_boot
+  protection = var.protection
 
   initialization {
 
@@ -73,7 +106,7 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
 
     ip_config {
       ipv4 {
-        address = local.ip_address_and_mask
+        address = cidrhost(local.ip_address_and_mask, local.ip_part[3] + count.index)
         gateway = var.gateway
       }
     }
@@ -83,22 +116,35 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
       domain  = var.searchdomain
     }
 
-
   }
 
   # root disk
   disk {
     datastore_id = var.root_disk_datastore_name
     file_id      = local.image_path
+    size         = var.root_disk_size
     interface    = var.root_disk_interface
     iothread     = var.root_disk_iothread
-    discard      = var.root_disk_discard
-    size         = var.root_disk_size
+    discard      = var.discard[var.root_disk_datastore_name]
     backup       = var.root_disk_backup
   }
 
-  network_device {
-    bridge = var.network_bridge
+  # Extra Disks
+  # Обход в цикле списка с объектами дисков
+  dynamic "disk" {
+    for_each = local.extra_disks
+    content {
+      datastore_id = disk.value.datastore_id
+      size         = disk.value.size
+      interface    = disk.value.interface
+      iothread     = disk.value.iothread
+      discard      = disk.value.discard
+      backup       = disk.value.backup
+    }
   }
 
+  network_device {
+    bridge  = var.network_bridge
+    vlan_id = var.vlan_id
+  }
 }
