@@ -1,4 +1,5 @@
 
+# terraform destroy --target=proxmox_virtual_environment_vm.ubuntu_vm
 
 resource "proxmox_virtual_environment_file" "cloud_config" {
   node_name    = var.proxmox_node
@@ -10,30 +11,45 @@ resource "proxmox_virtual_environment_file" "cloud_config" {
   }
 }
 
-# terraform destroy --target=proxmox_virtual_environment_vm.ubuntu_vm
-
 locals {
 
   ip_address  = var.ip_address
   subnet_mask = var.subnet_mask
 
+  # ip_address_test = "192.168.2.235/24"
+  # # Вывод: "192.168.2.235"
+  # ip_address_without_mask = split("/", local.ip_address_test)[0]
+  # # Выводы по октетам:
+  # # Вывод: "192"
+  # ip_address_test_octet_1 = split(".", local.ip_address_without_mask)[0]
+  # # Вывод: "168"
+  # ip_address_test_octet_2 = split(".", local.ip_address_without_mask)[1]
+  # # Вывод: "2"
+  # ip_address_test_octet_3 = split(".", local.ip_address_without_mask)[2]
+  # # Вывод: "235"
+  # ip_address_test_octet_4 = split(".", local.ip_address_without_mask)[3]
+
   # разделение IP-адреса на части
-  ip_part = split(".", local.ip_address)
+  ip_address_part    = split(".", local.ip_address)
+  ip_address_octet_4 = local.ip_address_part[3]
   # формирование ID виртуальной машины
-  # vm_id = ( local.ip_part[1] * 1000000 + 
-  #           local.ip_part[2] * 1000 + 
-  #           local.ip_part[3] + 
-  #           count.index)
+  vm_id_start = (local.ip_address_part[1] * 1000000 +
+                 local.ip_address_part[2] * 1000 +
+                 local.ip_address_part[3])
 
   # для IP-адреса в блоке ip_config
   ip_address_and_mask = join("/", [local.ip_address, local.subnet_mask])
 
-  # для файла user_data.yaml на сервере Proxmox ("user_data_vmid.yaml")
-  user_data_file_name      = join("_", ["user_data", local.vm_id])
+  # Формирование имени файла user_data.yaml на сервере Proxmox ("user_data_vmid.yaml"):
+  # join("_", ["user_data", local.vm_id_start]) = "user_data_235"
+  user_data_file_name      = join("_", ["user_data", local.vm_id_start])
+  # join(".", [local.user_data_file_name, "yaml"]) = "user_data_235.yaml"
   full_user_data_file_name = join(".", [local.user_data_file_name, "yaml"])
 
-  # Путь для cloud-init диска ("local:iso/noble-server-cloudimg-amd64.img")
+  # Путь для cloud-init диска ("local:iso/noble-server-cloudimg-amd64.img"):
+  # join(":", [var.cloud_init_file_datastore, "iso"]) = "local:iso"
   iso_datastore_path = join(":", [var.cloud_init_file_datastore, "iso"])
+  # join("/", [local.iso_datastore_path, var.image_name]) = "local:iso/noble-server-cloudimg-amd64.img"
   image_path         = join("/", [local.iso_datastore_path, var.image_name])
 
   # Добавление дополнительных дисков
@@ -51,35 +67,19 @@ locals {
 
 }
 
-# Вывод ID виртуальной машины
-# output "vm_id" {
-#   value = local.ip_address_and_mask
-# }
-
-# Вывод пути к образам
-# output "image_path" {
-#   value = local.image_path
-# }
-
-# Вывод списка дисков
-# output "extra_disks" {
-#   value = local.extra_disks
-# }
-
 resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
-
-  # address_count = join("/", [local.ip_address + count.index, local.subnet_mask])
 
   count = var.count_vms
 
-  name      = var.vm_name
+  name      = "${var.vm_name}-${count.index + 1}"
   node_name = var.proxmox_node
+
   # формирование ID виртуальной машины
-  # vm_id     = local.vm_id
-  # cidrhost(local.ip_address_and_mask, local.ip_part[3] + count.index)
-  vm_id = ( local.ip_part[1] * 1000000 + 
-            local.ip_part[2] * 1000 + 
-            local.ip_part[3] + count.index)
+  #            cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index)     = "192.168.50.235"
+  # split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[3] = "235"
+  vm_id = ( split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[1] * 1000000 +
+            split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[2] * 1000 +
+            split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[3] )
 
   # should be true if qemu agent is not installed / enabled on the VM
   stop_on_destroy = var.stop_on_destroy
@@ -106,7 +106,9 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
 
     ip_config {
       ipv4 {
-        address = cidrhost(local.ip_address_and_mask, local.ip_part[3] + count.index)
+        #            cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index)                      = "192.168.50.235"
+        # join("/", [cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index), local.subnet_mask]) = "192.168.50.235/24"
+        address = join("/", [cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index), local.subnet_mask])
         gateway = var.gateway
       }
     }
