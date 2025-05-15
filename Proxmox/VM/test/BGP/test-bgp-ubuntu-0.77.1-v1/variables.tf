@@ -18,6 +18,12 @@ variable "discard" {
     "HDD"       = "ignore"
   }
 }
+
+variable "count_proxmox_nodes" {
+  type    = number
+  default = 5
+}
+
 # ================================================
 #                     Image Settings
 # ================================================
@@ -185,4 +191,13 @@ variable "extra_disks_iothread" {
 variable "extra_disks_backup" {
   type    = bool
   default = true
+}
+
+# ===============================================
+#                   Node Splitting
+# ===============================================
+
+variable "node_splitting" {
+  type    = bool
+  default = false
 }

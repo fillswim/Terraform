@@ -2,7 +2,8 @@
 # terraform destroy --target=proxmox_virtual_environment_vm.ubuntu_vm
 
 resource "proxmox_virtual_environment_file" "cloud_config" {
-  node_name    = var.proxmox_node
+  count        = local.count_proxmox_nodes
+  node_name    = "proxmox${1 + count.index}"
   datastore_id = var.cloud_init_file_datastore
   content_type = "snippets"
   source_file {
@@ -12,6 +13,9 @@ resource "proxmox_virtual_environment_file" "cloud_config" {
 }
 
 locals {
+
+  # Количество proxmox серверов
+  count_proxmox_nodes = var.count_proxmox_nodes
 
   ip_address  = var.ip_address
   subnet_mask = var.subnet_mask
@@ -34,15 +38,15 @@ locals {
   ip_address_octet_4 = local.ip_address_part[3]
   # формирование ID виртуальной машины
   vm_id_start = (local.ip_address_part[1] * 1000000 +
-                 local.ip_address_part[2] * 1000 +
-                 local.ip_address_part[3])
+    local.ip_address_part[2] * 1000 +
+  local.ip_address_part[3])
 
   # для IP-адреса в блоке ip_config
   ip_address_and_mask = join("/", [local.ip_address, local.subnet_mask])
 
   # Формирование имени файла user_data.yaml на сервере Proxmox ("user_data_vmid.yaml"):
   # join("_", ["user_data", local.vm_id_start]) = "user_data_235"
-  user_data_file_name      = join("_", ["user_data", local.vm_id_start])
+  user_data_file_name = join("_", ["user_data", local.vm_id_start])
   # join(".", [local.user_data_file_name, "yaml"]) = "user_data_235.yaml"
   full_user_data_file_name = join(".", [local.user_data_file_name, "yaml"])
 
@@ -50,7 +54,7 @@ locals {
   # join(":", [var.cloud_init_file_datastore, "iso"]) = "local:iso"
   iso_datastore_path = join(":", [var.cloud_init_file_datastore, "iso"])
   # join("/", [local.iso_datastore_path, var.image_name]) = "local:iso/noble-server-cloudimg-amd64.img"
-  image_path         = join("/", [local.iso_datastore_path, var.image_name])
+  image_path = join("/", [local.iso_datastore_path, var.image_name])
 
   # Добавление дополнительных дисков
   # Генерация списка из объектов с дисками [{}, {}, {}]
@@ -71,8 +75,10 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
 
   count = var.count_vms
 
-  name      = "${var.vm_name}-${count.index + 1}"
-  node_name = var.proxmox_node
+  name = "${var.vm_name}-${count.index + 1}"
+  # node_name = var.proxmox_node
+  # деление индекса вм-ки по модулю 5 (количество proxmox серверов) + 1
+  node_name = var.node_splitting ? "proxmox${count.index % local.count_proxmox_nodes + 1}" : var.proxmox_node
 
   # формирование ID виртуальной машины
   #                    cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index)     = "192.168.50.235"
@@ -102,7 +108,9 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
 
   initialization {
 
-    user_data_file_id = proxmox_virtual_environment_file.cloud_config.id
+    # user_data_file_id = proxmox_virtual_environment_file.cloud_config.id
+    # count.index % local.count_proxmox_nodes = [0, 1, 2, 3, 4]
+    user_data_file_id = proxmox_virtual_environment_file.cloud_config[count.index % local.count_proxmox_nodes].id
 
     ip_config {
       ipv4 {
