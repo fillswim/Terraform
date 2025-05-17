@@ -1,17 +1,3 @@
-
-# terraform destroy --target=proxmox_virtual_environment_vm.ubuntu_vm
-
-resource "proxmox_virtual_environment_file" "cloud_config" {
-  count        = local.count_proxmox_nodes
-  node_name    = "proxmox${1 + count.index}"
-  datastore_id = var.cloud_init_file_datastore
-  content_type = "snippets"
-  source_file {
-    path      = var.cloud_init_file_name
-    file_name = local.full_user_data_file_name
-  }
-}
-
 locals {
 
   # Количество proxmox серверов
@@ -37,9 +23,9 @@ locals {
   ip_address_part    = split(".", local.ip_address)
   ip_address_octet_4 = local.ip_address_part[3]
   # формирование ID виртуальной машины
-  vm_id_start = ( local.ip_address_part[1] * 1000000 +
-                  local.ip_address_part[2] * 1000 +
-                  local.ip_address_part[3] )
+  vm_id_start = (local.ip_address_part[1] * 1000000 +
+    local.ip_address_part[2] * 1000 +
+  local.ip_address_part[3])
 
   # для IP-адреса в блоке ip_config
   ip_address_and_mask = join("/", [local.ip_address, local.subnet_mask])
@@ -71,11 +57,11 @@ locals {
 
 }
 
-resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
+resource "proxmox_virtual_environment_container" "lxc" {
 
   count = var.count_vms
 
-  name = "${var.vm_name}-${count.index + 1}"
+  #   name = "${var.vm_name}-${count.index + 1}"
   # node_name = var.proxmox_node
   # деление индекса вм-ки по модулю 5 (количество proxmox серверов) + 1
   node_name = var.node_splitting ? "proxmox${count.index % local.count_proxmox_nodes + 1}" : var.proxmox_node
@@ -83,34 +69,35 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
   # формирование ID виртуальной машины
   #                    cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index)     = "192.168.50.235"
   #         split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[3] = "235"
-  vm_id = ( split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[1] * 1000000 +
-            split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[2] * 1000 +
-            split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[3] )
+  vm_id = (split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[1] * 1000000 +
+           split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[2] * 1000 +
+           split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[3])
 
-  # should be true if qemu agent is not installed / enabled on the VM
-  stop_on_destroy = var.stop_on_destroy
+  # cpu {
+  #   cores        = var.cpu_cores[var.proxmox_node]
+  #   architecture = "amd64"
+  #   units        = 1
+  # }
 
-  agent {
-    enabled = var.agent
+  # memory {
+  #   dedicated = var.memory
+  # }
+
+  # root disk
+  disk {
+    datastore_id = var.root_disk_datastore_name
+    size         = var.root_disk_size
   }
 
-  cpu {
-    cores = var.cpu_cores[var.proxmox_node]
-    type  = var.cpu_type
+  network_interface {
+    name    = "eth0"
+    bridge  = var.network_bridge
+    vlan_id = var.vlan_id
   }
-
-  memory {
-    dedicated = var.memory
-  }
-
-  on_boot    = var.on_boot
-  protection = var.protection
 
   initialization {
 
-    # user_data_file_id = proxmox_virtual_environment_file.cloud_config.id
-    # count.index % local.count_proxmox_nodes = [0, 1, 2, 3, 4]
-    user_data_file_id = proxmox_virtual_environment_file.cloud_config[count.index % local.count_proxmox_nodes].id
+    hostname = "${var.vm_name}-${count.index + 1}"
 
     ip_config {
       ipv4 {
@@ -121,6 +108,13 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
       }
     }
 
+    user_account {
+      keys = [
+        var.ssh_key_1
+      ]
+      password = "test-lxc"
+    }
+
     dns {
       servers = var.nameservers
       domain  = var.searchdomain
@@ -128,33 +122,61 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
 
   }
 
-  # root disk
-  disk {
-    datastore_id = var.root_disk_datastore_name
-    file_id      = local.image_path
-    size         = var.root_disk_size
-    interface    = var.root_disk_interface
-    iothread     = var.root_disk_iothread
-    discard      = var.discard[var.root_disk_datastore_name]
-    backup       = var.root_disk_backup
+  console {
+    enabled = true
+    type    = "console"
   }
 
-  # Extra Disks
-  # Обход в цикле списка с объектами дисков
-  dynamic "disk" {
-    for_each = local.extra_disks
-    content {
-      datastore_id = disk.value.datastore_id
-      size         = disk.value.size
-      interface    = disk.value.interface
-      iothread     = disk.value.iothread
-      discard      = disk.value.discard
-      backup       = disk.value.backup
+  operating_system {
+
+    # Ubuntu 24.04
+    # template_file_id = "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
+    # type             = "ubuntu"
+
+    # Ubuntu 22.04
+    # template_file_id = "local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.zst"
+    # type             = "ubuntu"
+
+    # Rocky Linux 9
+    # template_file_id = "local:vztmpl/rockylinux-9-default_20240912_amd64.tar.xz"
+    # type             = "centos"
+
+    # CentOS 9 Stream
+    # template_file_id = "local:vztmpl/centos-9-stream-default_20240828_amd64.tar.xz"
+    # type             = "centos"
+
+    # AlmaLinux 9
+    template_file_id = "local:vztmpl/almalinux-9-default_20240911_amd64.tar.xz"
+    type             = "centos"
+
+    # Documentation:
+    # template_file_id = proxmox_virtual_environment_download_file.latest_ubuntu_22_jammy_lxc_img.id
+    # # Or you can use a volume ID, as obtained from a "pvesm list <storage>"
+    # # template_file_id = "local:vztmpl/jammy-server-cloudimg-amd64.tar.gz"
+  }
+
+}
+
+resource "null_resource" "remote_exec" {
+
+  depends_on = [proxmox_virtual_environment_container.lxc]
+
+  count = var.count_vms
+
+  provisioner "remote-exec" {
+    inline = [
+      "apt install -y mtr",
+      "pct exec ${proxmox_virtual_environment_container.lxc[count.index].vm_id} -- dnf update -y",
+      "pct exec ${proxmox_virtual_environment_container.lxc[count.index].vm_id} -- dnf install -y openssh-server",
+      "pct exec ${proxmox_virtual_environment_container.lxc[count.index].vm_id} -- systemctl enable sshd",
+      "pct exec ${proxmox_virtual_environment_container.lxc[count.index].vm_id} -- systemctl start sshd"
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = "root"
+      private_key = file("~/.ssh/id_ed25519")
+      host        = "192.168.2.3"
     }
-  }
-
-  network_device {
-    bridge  = var.network_bridge
-    vlan_id = var.vlan_id
   }
 }
