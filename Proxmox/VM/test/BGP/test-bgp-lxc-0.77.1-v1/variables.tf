@@ -1,4 +1,5 @@
 variable "cpu_cores" {
+  type = map(number)
   default = {
     "proxmox1" = 4
     "proxmox2" = 6
@@ -8,15 +9,36 @@ variable "cpu_cores" {
   }
 }
 
-# будут ли TRIM/UNMAP команды передаваться из гостевой ОС на уровень хранилища
-# Только для local-lvm (LVM-Thin)
-variable "discard" {
+variable "lxc_templates" {
+  type = map(string)
   default = {
-    "local-lvm" = "on"
-    "local"     = "ignore"
-    "SSD"       = "ignore"
-    "HDD"       = "ignore"
+    "ubuntu-24.04" = "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
+    "ubuntu-22.04" = "local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.zst"
+    "almalinux-9"  = "local:vztmpl/almalinux-9-default_20240911_amd64.tar.xz"
   }
+}
+
+variable "lxc_type" {
+  type = map(string)
+  default = {
+    "ubuntu-24.04" = "ubuntu"
+    "ubuntu-22.04" = "ubuntu"
+    "almalinux-9"  = "centos"
+  }
+}
+
+# ================================================
+#                    Proxmox Nodes
+# ================================================
+
+variable "proxmox_node_ssh_username" {
+  type    = string
+  default = "root"
+}
+
+variable "proxmox_node_ssh_private_key_file" {
+  type    = string
+  default = "~/.ssh/id_ed25519"
 }
 
 variable "count_proxmox_nodes" {
@@ -24,31 +46,15 @@ variable "count_proxmox_nodes" {
   default = 5
 }
 
-# ================================================
-#                    Proxmox Nodes
-# ================================================
-
-variable "ssh_key_1" {
-  type    = string
-}
-
-# ================================================
-#                     Image Settings
-# ================================================
-
-variable "image_name" {
-  type    = string
-  default = "noble-server-cloudimg-amd64.img"
-}
-
-variable "cloud_init_file_name" {
-  type    = string
-  default = "user_data.yaml"
-}
-
-variable "cloud_init_file_datastore" {
-  type    = string
-  default = "local"
+variable "proxmox_node_ip_address" {
+  type = map(string)
+  default = {
+    "proxmox1" = "192.168.2.3"
+    "proxmox2" = "192.168.2.4"
+    "proxmox3" = "192.168.2.5"
+    "proxmox4" = "192.168.2.6"
+    "proxmox5" = "192.168.2.7"
+  }
 }
 
 # =============================================
@@ -90,22 +96,22 @@ variable "searchdomain" {
 }
 
 # ================================================
-#                     VM Settings
+#                     LXC Settings
 # ================================================
 
-variable "count_vms" {
+variable "count_lxcs" {
   type    = number
   default = 1
 }
 
-variable "vm_name" {
+variable "lxc_name" {
   type    = string
   default = "test-ubuntu"
 }
 
 variable "proxmox_node" {
   type    = string
-  default = "proxmox3"
+  default = "proxmox1"
 }
 
 variable "memory" {
@@ -113,29 +119,62 @@ variable "memory" {
   default = 4096
 }
 
-variable "on_boot" {
-  type    = bool
-  default = true
-}
-
-variable "agent" {
-  type    = bool
-  default = true
-}
-
-variable "stop_on_destroy" {
-  type    = bool
-  default = true
-}
-
-variable "cpu_type" {
+variable "cpu_architecture" {
   type    = string
-  default = "host"
+  default = "amd64"
+}
+
+variable "cpu_units" {
+  type    = number
+  default = 1
 }
 
 variable "protection" {
   type    = bool
   default = false
+}
+
+variable "lxc_template_distribution" {
+  type    = string
+  default = "ubuntu-24.04"
+}
+
+variable "lxc_ssh_public_keys" {
+  type = list(string)
+}
+
+variable "lxc_password" {
+  type = string
+}
+
+variable "network_interface_name" {
+  type    = string
+  default = "eth0"
+}
+
+variable "start_on_boot" {
+  type    = bool
+  default = true
+}
+
+variable "console_enabled" {
+  type    = bool
+  default = true
+}
+
+variable "console_type" {
+  type    = string
+  default = "console"
+}
+
+variable "unprivileged" {
+  type    = bool
+  default = true
+}
+
+variable "features_nesting" {
+  type    = bool
+  default = true
 }
 
 # ================================================
@@ -152,55 +191,6 @@ variable "root_disk_size" {
   default = 20
 }
 
-variable "root_disk_interface" {
-  type    = string
-  default = "virtio0"
-}
-
-variable "root_disk_iothread" {
-  type    = bool
-  default = true
-}
-
-variable "root_disk_backup" {
-  type    = bool
-  default = true
-}
-
-# ===============================================
-#                   Extra Disks
-# ===============================================
-
-variable "extra_disks_count" {
-  type    = number
-  default = 0
-}
-
-variable "extra_disks_datastore_name" {
-  type    = string
-  default = "HDD"
-}
-
-variable "extra_disks_size" {
-  type    = number
-  default = 100
-}
-
-variable "extra_disks_interface" {
-  type    = string
-  default = "virtio"
-}
-
-variable "extra_disks_iothread" {
-  type    = bool
-  default = true
-}
-
-variable "extra_disks_backup" {
-  type    = bool
-  default = true
-}
-
 # ===============================================
 #                   Node Splitting
 # ===============================================
@@ -209,15 +199,3 @@ variable "node_splitting" {
   type    = bool
   default = false
 }
-
-
-# ===============================================
-#                   LXC Settings
-# ===============================================
-
-variable "lxc_template_file_id" {
-  type    = string
-  default = "local-lvm"
-}
-
-

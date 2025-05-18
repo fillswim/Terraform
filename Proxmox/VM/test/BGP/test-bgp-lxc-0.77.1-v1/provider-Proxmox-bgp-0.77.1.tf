@@ -9,12 +9,13 @@ terraform {
 
 provider "proxmox" {
   endpoint  = var.endpoint
-  api_token = var.api_token
+  username  = var.proxmox_username
+  password  = var.proxmox_password
   insecure  = var.insecure
   ssh {
     agent       = true
-    private_key = file("~/.ssh/id_ed25519")
-    username    = "root"
+    private_key = file(var.proxmox_node_ssh_private_key_file)
+    username    = var.proxmox_node_ssh_username
   }
 }
 
@@ -22,11 +23,15 @@ variable "endpoint" {
   type = string
 }
 
-variable "api_token" {
-  type = string
-}
-
 variable "insecure" {
   type    = bool
   default = true
+}
+
+variable "proxmox_username" {
+  type = string
+}
+
+variable "proxmox_password" {
+  type = string
 }
