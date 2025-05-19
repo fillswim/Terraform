@@ -31,16 +31,6 @@ variable "lxc_type" {
 #                    Proxmox Nodes
 # ================================================
 
-variable "proxmox_node_ssh_username" {
-  type    = string
-  default = "root"
-}
-
-variable "proxmox_node_ssh_private_key_file" {
-  type    = string
-  default = "~/.ssh/id_ed25519"
-}
-
 variable "count_proxmox_nodes" {
   type    = number
   default = 5
@@ -199,3 +189,35 @@ variable "node_splitting" {
   type    = bool
   default = false
 }
+
+# ===============================================
+#                   Extra Disks
+# ===============================================
+
+variable "extra_disks_mount_path" {
+  type    = map(string)
+  default = {
+    "1" = "/mnt/volume1"
+    "2" = "/mnt/volume2"
+    "3" = "/mnt/volume3"
+  }
+}
+
+variable "extra_disks_datastore_name" {
+  type    = string
+  default = "local-lvm"
+}
+
+variable "extra_disks_size" {
+  type    = string
+  default = "10G"
+}
+
+variable "extra_disks_backup" {
+  type    = bool
+  default = true
+}
+
+
+
+

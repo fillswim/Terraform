@@ -10,6 +10,17 @@ locals {
   # для IP-адреса в блоке ip_config
   ip_address_and_mask = join("/", [local.ip_address, local.subnet_mask])
 
+  # Добавление дополнительных дисков
+  # Генерация списка из объектов с дисками [{}, {}, {}]
+  extra_disks = [
+    for key, path in var.extra_disks_mount_path : {
+      volume = var.extra_disks_datastore_name
+      size   = var.extra_disks_size
+      path   = path
+      backup = var.extra_disks_backup
+    }
+  ]
+
 }
 
 resource "proxmox_virtual_environment_container" "lxc" {
@@ -49,6 +60,16 @@ resource "proxmox_virtual_environment_container" "lxc" {
     name    = var.network_interface_name
     bridge  = var.network_bridge
     vlan_id = var.vlan_id
+  }
+
+  dynamic "mount_point" {
+    for_each = local.extra_disks
+    content {
+      volume = mount_point.value.volume
+      size   = mount_point.value.size
+      path   = mount_point.value.path
+      backup = mount_point.value.backup
+    }
   }
 
   initialization {
