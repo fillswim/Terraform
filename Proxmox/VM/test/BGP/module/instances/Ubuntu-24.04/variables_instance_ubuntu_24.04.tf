@@ -16,6 +16,7 @@
 #     "local"     = "ignore"
 #     "SSD"       = "ignore"
 #     "HDD"       = "ignore"
+#     "NVME"      = "ignore"
 #   }
 # }
 

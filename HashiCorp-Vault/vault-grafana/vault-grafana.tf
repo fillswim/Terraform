@@ -1,37 +1,37 @@
-# ================================= S3 Backend =================================
-terraform {
-  backend "s3" {
-    bucket = "terraform-state"
-    key    = "vault-grafana/terraform.tfstate" # ! Необхожимо изменить для каждой папки !
+# # ================================= S3 Backend =================================
+# terraform {
+#   backend "s3" {
+#     bucket = "terraform-state"
+#     key    = "vault-grafana/terraform.tfstate" # ! Необхожимо изменить для каждой папки !
 
-    # endpoints = {
-    #   s3 = "http://api.minio.fillswim.local"
-    # }
+#     # endpoints = {
+#     #   s3 = "http://api.minio.fillswim.local"
+#     # }
 
-    region = "main"
+#     region = "main"
 
-    # access_key = "admin-username"
-    # secret_key = "admin-password"
+#     # access_key = "admin-username"
+#     # secret_key = "admin-password"
 
-    skip_credentials_validation = true
-    skip_metadata_api_check     = true
-    skip_region_validation      = true
-    skip_requesting_account_id  = true
-    use_path_style              = true
+#     skip_credentials_validation = true
+#     skip_metadata_api_check     = true
+#     skip_region_validation      = true
+#     skip_requesting_account_id  = true
+#     use_path_style              = true
 
-  }
-}
+#   }
+# }
 
 
 # ================================ Remote State ================================
 
-# Состояние из Развертывания конфигурации хранилища HashiCorp Valt "vault_config_k8s1_rhel"
-data "terraform_remote_state" "vault_config_k8s1_rhel" {
+# Состояние HashiCorp Valt проекта
+data "terraform_remote_state" "remote_state" {
   backend = "s3"
   config = {
-    bucket                      = "terraform-state"
-    key                         = "vault-config-k8s1-rhel/terraform.tfstate"
-    region                      = "main"
+    bucket                      = var.remote_state_bucket_name
+    key                         = var.remote_state_bucket_key
+    region                      = var.remote_state_region
     skip_credentials_validation = true
     skip_metadata_api_check     = true
     skip_region_validation      = true
@@ -40,60 +40,87 @@ data "terraform_remote_state" "vault_config_k8s1_rhel" {
   }
 }
 
-# Вывод всего из Remote State
-output "data_terraform_remote_state_vault_config_k8s1_rhel" {
-  # value = data.terraform_remote_state.vault_config_k8s1_rhel.outputs
-  value = data.terraform_remote_state.vault_config_k8s1_rhel.outputs.vault_auth_backend_kubernetes_path
+# Вывод всего из Remote State Vault (для отладки)
+output "remote_state_outputs" {
+  value = data.terraform_remote_state.remote_state.outputs
 }
 
-# =================================== Vault ====================================
+# # =================================== Vault ====================================
 
-# (Опционально) Получить данные о пути включенной аутентификации
-data "vault_auth_backend" "kubernetes" {
-  path = "kubernetes"
-}
+# # (Опционально) Получить данные о пути включенной аутентификации
+# data "vault_auth_backend" "kubernetes" {
+#   # path = "kubernetes"
+#   path = data.terraform_remote_state.remote_state.outputs.vault_auth_backend_kubernetes_path
+# }
 
 # output "data_vault_auth_backend_kubernetes" {
 #   value = data.vault_auth_backend.kubernetes
 # }
 
-# ================================== Policies ==================================
+# # ================================== Policies ==================================
 
-# Добавить полилитику для разработчиков
-resource "vault_policy" "grafana_ui_secret_policy" {
-  name   = "grafana-ui-secret-policy"
-  policy = file("policies/grafana-ui-secret-policy.hcl")
+# Добавить полилитику
+resource "vault_policy" "policy" {
+  name   = var.vault_policy_name
+  policy = file(var.vault_policy_file)
 }
 
-# ================================== Folders ===================================
+# output "vault_policy_output" {
+#   value = vault_policy.policy
+# }
+
+# # # ================================== Folders ===================================
 
 # Включить механизм KV2 для папки "grafana"
-resource "vault_mount" "grafana" {
-  path        = "grafana"
-  type        = "kv-v2"
-  description = "KV2 Secrets Engine for Grafana"
+resource "vault_mount" "folder" {
+  path        = var.vault_mount_path
+  type        = var.vault_mount_type
+  description = var.vault_mount_description
 }
 
-# ==================================== Roles ===================================
+# output "vault_mount_folder_output" {
+#   value = vault_mount.folder
+# }
 
-# Создание роли для доступа к секрету Grafana 
-resource "vault_kubernetes_auth_backend_role" "grafana_ui_secret_role" {
-  # Из data vault_auth_backend.kubernetes
-  # backend                          = data.vault_auth_backend.kubernetes.path
-  # Из Remote State
-  backend                          = data.terraform_remote_state.vault_config_k8s1_rhel.outputs.vault_auth_backend_kubernetes_path
-  role_name                        = "grafana-ui-secret-role"
-  bound_service_account_names      = ["default"]
-  bound_service_account_namespaces = ["grafana"]
+# # # ==================================== Roles ===================================
+
+# Создание роли для доступа к секрету 
+resource "vault_kubernetes_auth_backend_role" "role" {
+  # backend                          = data.terraform_remote_state.remote_state.outputs.vault_auth_backend_kubernetes_path
+  backend                          = var.vault_role_backend
+  role_name                        = var.vault_role_name
+  bound_service_account_names      = var.vault_role_bound_service_account_names
+  bound_service_account_namespaces = var.vault_role_bound_service_account_namespaces
   token_ttl                        = 86400 # 24 часа 
-  token_policies                   = ["default", vault_policy.grafana_ui_secret_policy.name]
+  token_policies                   = ["default", vault_policy.policy.name]
   audience                         = "vault"
 }
 
-# =================================== Secret ===================================
+# output "role" {
+#   value = vault_kubernetes_auth_backend_role.role
+# }
 
-# Создать секрет для Grafana UI
-resource "vault_generic_secret" "grafana_ui_secret" {
-  path      = "${vault_mount.grafana.path}/grafana-ui-secret"
-  data_json = file(".secrets/grafana-ui-secret.json")
+output "role_backend" {
+  value = vault_kubernetes_auth_backend_role.role.backend
 }
+
+output "role_name" {
+  value = vault_kubernetes_auth_backend_role.role.role_name
+}
+
+output "role_bound_service_account_names" {
+  value = vault_kubernetes_auth_backend_role.role.bound_service_account_names
+}
+
+output "role_bound_service_account_namespaces" {
+  value = vault_kubernetes_auth_backend_role.role.bound_service_account_namespaces
+}
+
+# # =================================== Secret ===================================
+
+# Создать секрет
+resource "vault_generic_secret" "secret" {
+  path      = "${vault_mount.folder.path}/${var.vault_secret_name}"
+  data_json = file(var.vault_secret_file)
+}
+
