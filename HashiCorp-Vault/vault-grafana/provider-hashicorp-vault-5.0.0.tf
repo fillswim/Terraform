@@ -3,8 +3,7 @@ terraform {
   required_providers {
     vault = {
       source  = "hashicorp/vault"
-      version = "4.5.0"
-      # version = "5.0.0"
+      version = "5.0.0"
     }
   }
 }
@@ -15,11 +14,11 @@ provider "vault" {
 }
 
 variable "vault_url" {
-  type = string
+  type      = string
   sensitive = true
 }
 
 variable "vault_token" {
-  type = string
+  type      = string
   sensitive = true
 }

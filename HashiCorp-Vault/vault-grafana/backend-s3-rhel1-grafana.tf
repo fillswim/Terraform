@@ -1,3 +1,6 @@
+
+# Куда будет сохраняться *.tfstate развертывания
+
 terraform {
   backend "s3" {
     bucket = "terraform-state"

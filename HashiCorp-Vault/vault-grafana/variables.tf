@@ -1,20 +1,3 @@
-# ==========================================
-#     Откуда брать данные о Vault проекта
-# ==========================================
-
-variable "remote_state_bucket_name" {
-  type    = string
-  default = "terraform-state"
-}
-
-variable "remote_state_bucket_key" {
-  type = string
-}
-
-variable "remote_state_region" {
-  type    = string
-  default = "main"
-}
 
 # ==========================================
 #                Vault Policy
