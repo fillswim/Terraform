@@ -78,3 +78,5 @@ terraform.log
 # Secrets
 .secrets
 .certs
+
+.kube/
