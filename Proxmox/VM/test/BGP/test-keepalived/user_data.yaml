@@ -1,10 +1,9 @@
 #cloud-config
 preserve_hostname: true
-# hostname: test-ubuntu-cloud-config
 timezone: Europe/Moscow
 users:
   # - default
-  - name: ubuntu
+  - name: cloud-user
     passwd: "$6$ZfYJbwABJMWU8jZc$U496aFaBwEle.VZHOLOraykXNOQkvOhlHsxfb.Gh8XjYVPippHApIztMbcBk4Rn787xviGsd0ckl4V9CSFxNl."
     lock_passwd: false
     groups:

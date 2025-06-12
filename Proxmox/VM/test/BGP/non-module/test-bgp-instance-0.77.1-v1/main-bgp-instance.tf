@@ -1,13 +1,35 @@
 
 # terraform destroy --target=proxmox_virtual_environment_vm.ubuntu_vm
+# - ${trimspace(data.local_file.ssh_public_key.content)}
 
+# Сгенерировать файл user_data.yaml на основе шаблона user_data.tmpl
+resource "local_file" "user_data_tmpl" {
+  content  = templatefile("${path.module}/user_data.tmpl", {
+    username = var.ssh_user
+  })
+  filename = "${path.module}/generated/user_data.yaml"
+}
+
+# # user_data_tmpl = "./generated/user_data.yaml"    =     "./generated/user_data.yaml"
+# output "user_data_tmpl" {
+#   sensitive = false
+#   value     = local_file.user_data_tmpl.filename
+# }
+
+# Загрузить файл user_data.yaml на сервера Proxmox
 resource "proxmox_virtual_environment_file" "cloud_config" {
+
+  depends_on = [local_file.user_data_tmpl]
+
   count        = local.count_proxmox_nodes
   node_name    = "proxmox${1 + count.index}"
   datastore_id = var.cloud_init_file_datastore
   content_type = "snippets"
   source_file {
-    path      = var.cloud_init_file_name
+    # Путь к файлу user_data.yaml в директории с проектом terraform
+    # path      = var.cloud_init_file_name
+    path      = local_file.user_data_tmpl.filename
+    # Имя файла на сервере Proxmox
     file_name = local.full_user_data_file_name
   }
 }
@@ -37,9 +59,9 @@ locals {
   ip_address_part    = split(".", local.ip_address)
   ip_address_octet_4 = local.ip_address_part[3]
   # формирование ID виртуальной машины
-  vm_id_start = ( local.ip_address_part[1] * 1000000 +
-                  local.ip_address_part[2] * 1000 +
-                  local.ip_address_part[3] )
+  vm_id_start = (local.ip_address_part[1] * 1000000 +
+    local.ip_address_part[2] * 1000 +
+  local.ip_address_part[3])
 
   # для IP-адреса в блоке ip_config
   ip_address_and_mask = join("/", [local.ip_address, local.subnet_mask])
@@ -73,6 +95,8 @@ locals {
 
 resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
 
+  depends_on = [proxmox_virtual_environment_file.cloud_config]
+
   count = var.count_vms
 
   name = "${var.vm_name}-${count.index + 1}"
@@ -83,9 +107,9 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
   # формирование ID виртуальной машины
   #                    cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index)     = "192.168.50.235"
   #         split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[3] = "235"
-  vm_id = ( split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[1] * 1000000 +
-            split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[2] * 1000 +
-            split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[3] )
+  vm_id = (split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[1] * 1000000 +
+    split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[2] * 1000 +
+  split(".", cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index))[3])
 
   # should be true if qemu agent is not installed / enabled on the VM
   stop_on_destroy = var.stop_on_destroy
@@ -157,4 +181,27 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
     bridge  = var.network_bridge
     vlan_id = var.vlan_id
   }
+}
+
+# Переименовать hostname
+resource "null_resource" "remote_exec" {
+
+  depends_on = [proxmox_virtual_environment_vm.ubuntu_vm]
+
+  count = var.count_vms
+
+  provisioner "remote-exec" {
+
+    connection {
+      type        = "ssh"
+      host        = cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index)
+      user        = var.ssh_user
+      private_key = file(var.ssh_private_key)
+    }
+
+    inline = [
+      "sudo hostnamectl set-hostname ${var.vm_name}-${count.index + 1}"
+    ]
+  }
+
 }

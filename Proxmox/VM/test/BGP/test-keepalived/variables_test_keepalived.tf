@@ -9,38 +9,39 @@ variable "ssh_private_key" {
 
 variable "ssh_user" {
   type    = string
-  default = "ubuntu"
+  default = "cloud-user"
 }
 
 # ================================================
 #                    CPU Settings
 # ================================================
 
-variable "cpu_cores" {
-  default = {
-    "proxmox1" = 4
-    "proxmox2" = 6
-    "proxmox3" = 4
-    "proxmox4" = 6
-    "proxmox5" = 6
-  }
-}
+# variable "cpu_cores" {
+#   default = {
+#     "proxmox1" = 4
+#     "proxmox2" = 6
+#     "proxmox3" = 4
+#     "proxmox4" = 6
+#     "proxmox5" = 6
+#   }
+# }
 
-# будут ли TRIM/UNMAP команды передаваться из гостевой ОС на уровень хранилища
-# Только для local-lvm (LVM-Thin)
-variable "discard" {
-  default = {
-    "local-lvm" = "on"
-    "local"     = "ignore"
-    "SSD"       = "ignore"
-    "HDD"       = "ignore"
-  }
-}
+# # будут ли TRIM/UNMAP команды передаваться из гостевой ОС на уровень хранилища
+# # Только для local-lvm (LVM-Thin)
+# variable "discard" {
+#   default = {
+#     "local-lvm" = "on"
+#     "local"     = "ignore"
+#     "SSD"       = "ignore"
+#     "HDD"       = "ignore"
+#     "NVME"      = "ignore"
+#   }
+# }
 
-variable "count_proxmox_nodes" {
-  type    = number
-  default = 5
-}
+# variable "count_proxmox_nodes" {
+#   type    = number
+#   default = 5
+# }
 
 # ================================================
 #                     Image Settings
@@ -70,10 +71,10 @@ variable "vlan_id" {
   default = 0
 }
 
-variable "network_bridge" {
-  type    = string
-  default = "vmbr0"
-}
+# variable "network_bridge" {
+#   type    = string
+#   default = "vmbr0"
+# }
 
 variable "ip_address" {
   type = string
