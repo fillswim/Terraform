@@ -1,20 +1,33 @@
 
 # terraform destroy --target=proxmox_virtual_environment_vm.ubuntu_vm
-# - ${trimspace(data.local_file.ssh_public_key.content)}
+
+# Создать папку для сгенерированных файлов
+resource "null_resource" "create_folder" {
+  provisioner "local-exec" {
+    command = "mkdir -p ${path.module}/${var.folder_name}"
+  }
+}
 
 # Сгенерировать файл user_data.yaml на основе шаблона user_data.tmpl
 resource "local_file" "user_data_tmpl" {
-  content  = templatefile("${path.module}/user_data.tmpl", {
-    username = var.ssh_user
+
+  depends_on = [null_resource.create_folder]
+
+  content  = templatefile("${path.module}/${var.template_file_name}", {
+    timezone              = var.timezone
+    username              = var.cloud_user_username
+    password_hash         = var.password_hash
+    ssh_authorized_keys_1 = var.ssh_public_keys_1
+    ssh_authorized_keys_2 = var.ssh_public_keys_2
   })
-  filename = "${path.module}/generated/user_data.yaml"
+  filename = "${path.module}/${var.folder_name}/${var.user_data_file_name}"
 }
 
-# # user_data_tmpl = "./generated/user_data.yaml"    =     "./generated/user_data.yaml"
-# output "user_data_tmpl" {
-#   sensitive = false
-#   value     = local_file.user_data_tmpl.filename
-# }
+# "./generated/user_data.yaml" = "./generated/user_data.yaml"
+output "user_data_tmpl" {
+  sensitive = false
+  value     = local_file.user_data_tmpl.filename
+}
 
 # Загрузить файл user_data.yaml на сервера Proxmox
 resource "proxmox_virtual_environment_file" "cloud_config" {
@@ -195,7 +208,7 @@ resource "null_resource" "remote_exec" {
     connection {
       type        = "ssh"
       host        = cidrhost(local.ip_address_and_mask, local.ip_address_octet_4 + count.index)
-      user        = var.ssh_user
+      user        = var.cloud_user_username
       private_key = file(var.ssh_private_key)
     }
 
