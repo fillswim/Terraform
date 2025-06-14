@@ -1,4 +1,31 @@
+# Создать папку для сгенерированных файлов
+resource "null_resource" "create_folder" {
+  provisioner "local-exec" {
+    command = "mkdir -p ${path.module}/${var.folder_name}"
+  }
+}
+
+# Сгенерировать файл user_data.yaml на основе шаблона user_data.tmpl
+resource "local_file" "user_data_tmpl" {
+
+  depends_on = [null_resource.create_folder]
+
+  content  = templatefile("${path.module}/${var.template_file_name}", {
+    timezone              = var.timezone
+    username              = var.cloud_user_username
+    password_hash         = var.password_hash
+    ssh_authorized_keys_1 = var.ssh_public_keys_1
+    ssh_authorized_keys_2 = var.ssh_public_keys_2
+    ssh_authorized_keys_3 = var.ssh_public_keys_3
+    ssh_authorized_keys_4 = var.ssh_public_keys_4
+  })
+  filename = "${path.module}/${var.folder_name}/${var.user_data_file_name}"
+}
+
+
 module "test_keepalived" {
+
+  depends_on = [local_file.user_data_tmpl]
 
   source = "/home/fill/Terraform-Modules/Proxmox/bpg/0.77.1/v1/instance"
 
@@ -23,7 +50,10 @@ module "test_keepalived" {
   #                     Image Settings
   # ================================================
   image_name                = var.image_name
-  cloud_init_file_name      = var.cloud_init_file_name
+  # Прописать имя файла cloud-init (user_data.yaml)
+  # cloud_init_file_name      = var.cloud_init_file_name
+  # Связать с ресурсом "local_file"
+  cloud_init_file_name      = local_file.user_data_tmpl.filename
   cloud_init_file_datastore = var.cloud_init_file_datastore
   # =============================================
   #                     Network
