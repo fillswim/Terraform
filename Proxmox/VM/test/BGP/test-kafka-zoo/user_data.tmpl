@@ -24,6 +24,11 @@ packages:
   - curl
   - chrony
   - tzdata
+  - dnsutils
+  - nano
+  - wget
+  - nc
+  - mc
 runcmd:
   - systemctl enable qemu-guest-agent --now
   - systemctl enable chronyd --now

@@ -23,7 +23,7 @@ resource "local_file" "user_data_tmpl" {
 }
 
 
-module "test_keepalived" {
+module "test_opensearch" {
 
   depends_on = [local_file.user_data_tmpl]
 
@@ -83,5 +83,5 @@ module "test_keepalived" {
 }
 
 output "details" {
-  value = module.test_keepalived.details
+  value = module.test_opensearch.details
 }
