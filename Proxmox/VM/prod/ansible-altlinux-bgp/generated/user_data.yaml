@@ -1,0 +1,36 @@
+#cloud-config
+preserve_hostname: true
+timezone: Europe/Moscow
+users:
+  # - default
+  - name: cloud-user
+    passwd: $6$ZfYJbwABJMWU8jZc$U496aFaBwEle.VZHOLOraykXNOQkvOhlHsxfb.Gh8XjYVPippHApIztMbcBk4Rn787xviGsd0ckl4V9CSFxNl.
+    lock_passwd: false
+    groups:
+      - sudo
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKKb8Ba0ljYNKK5gJlaOKqwskwlsvZzB/Ka8CWmpGHkL fills@dell
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIChOrc4XQxlBH9ZEHI35Hj1p5521D8+qjIrHzEWITkx2 fill@terraform
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHd+J/pKNiY2hCxAyJ5QDYmALnD6SBa3DZPzBXQb5lch fill@ansible-master1
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICj4ywwwGTRc0ofU6qIJ3xhcb5sAgfr3uhIfZvBXQO1w rt-dc\oafilatov@CT-WN-001221
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ2W0RtA/rZ2WGh7quQ7TnSskiE4pCtlgugm7hbQuBR+ fill@dell
+chpasswd:
+  expire: false
+package_update: true
+packages:
+  - qemu-guest-agent
+  - net-tools
+  - curl
+  - chrony
+  - tzdata
+  - dnsutils
+  - nano
+  - wget
+  - nc
+  - mc
+runcmd:
+  - systemctl enable qemu-guest-agent --now
+  - systemctl enable chronyd --now
+  - echo "done" > /tmp/cloud-config.done

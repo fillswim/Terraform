@@ -11,6 +11,7 @@ terraform {
 provider "vault" {
   address = var.vault_url
   token   = var.vault_token
+
 }
 
 variable "vault_url" {

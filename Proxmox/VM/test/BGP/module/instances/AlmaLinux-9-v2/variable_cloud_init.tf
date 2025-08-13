@@ -46,10 +46,6 @@ variable "ssh_public_keys_4" {
   type    = string
 }
 
-variable "ssh_public_keys_5" {
-  type    = string
-}
-
 variable "timezone" {
   type    = string
   default = "Europe/Moscow"
