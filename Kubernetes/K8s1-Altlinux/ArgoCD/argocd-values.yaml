@@ -1,0 +1,39 @@
+# HA mode with autoscaling
+
+global:
+  domain: argocd-altlinux.fillswim.local
+
+redis-ha:
+  enabled: true
+  image:
+    repository: public.ecr.aws/docker/library/redis
+    tag: 7.4.1-alpine
+
+controller:
+  replicas: 1
+
+server:
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+
+  ingress:
+    enabled: true
+    ingressClassName: "nginx"
+  #   tls: true
+
+  # ingressGrpc:
+  #   enabled: true
+  #   ingressClassName: "nginx"
+
+repoServer:
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+
+applicationSet:
+  replicas: 2
+
+configs:
+  params:
+    server.insecure: true

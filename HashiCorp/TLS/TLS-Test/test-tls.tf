@@ -6,6 +6,7 @@ resource "tls_private_key" "example" {
 
 # Создание запроса к пользовательскому сертификату
 resource "tls_cert_request" "example" {
+  
   private_key_pem = tls_private_key.example.private_key_pem
 
   ip_addresses = [ "192.168.2.30", "192.168.2.31", "192.168.2.32", "192.168.2.33", "192.168.2.34", "192.168.2.35", "192.168.2.36" ]

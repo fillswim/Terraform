@@ -1,0 +1,7 @@
+---
+
+speaker:
+  priorityClassName: "system-node-critical"
+
+controller:
+  priorityClassName: "system-node-critical"

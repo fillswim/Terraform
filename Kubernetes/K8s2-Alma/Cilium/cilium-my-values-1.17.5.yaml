@@ -1,0 +1,7 @@
+---
+
+kubeProxyReplacement: true
+waitForKubeProxy: false
+
+k8sServiceHost: "192.168.2.130"
+k8sServicePort: "7443"

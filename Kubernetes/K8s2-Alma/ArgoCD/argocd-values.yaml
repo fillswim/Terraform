@@ -1,0 +1,49 @@
+# HA mode with autoscaling
+
+global:
+  domain: argocd-alma-k8s2.fillswim.local
+
+redis-ha:
+  enabled: true
+  image:
+    repository: public.ecr.aws/docker/library/redis
+    tag: 7.4.1-alpine
+
+controller:
+  replicas: 1
+
+server:
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+
+  ingress:
+    enabled: true
+    ingressClassName: "nginx"
+    tls: true
+    # extraHosts:
+    #   - name: argocd-alma-k8s2.fillswim.local
+    annotations:
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      # nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    extraTls:
+      - hosts:
+        - argocd-alma-k8s2.fillswim.local
+        secretName: argo-cd-tls
+
+  # ingressGrpc:
+  #   enabled: true
+  #   ingressClassName: "nginx"
+
+repoServer:
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+
+applicationSet:
+  replicas: 2
+
+configs:
+  params:
+    server.insecure: true
