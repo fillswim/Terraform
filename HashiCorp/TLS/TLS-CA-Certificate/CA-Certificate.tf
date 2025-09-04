@@ -55,3 +55,16 @@ resource "local_file" "ca_cert_pem" {
   filename = "${path.module}/${var.certs_folder_name}/ca.crt"
 }
 
+# ==============================================================================
+#           Output Сертификата Корневого Центра Сертификации (CA)
+# ==============================================================================
+
+output "ca_private_key_pem" {
+  value     = tls_private_key.ca_private_key.private_key_pem
+  sensitive = true
+}
+
+output "ca_cert_pem" {
+  value     = tls_self_signed_cert.ca_self_signed_cert.cert_pem
+  sensitive = true
+}
