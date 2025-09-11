@@ -1,10 +1,10 @@
 # HA mode with autoscaling
 
 global:
-  domain: argocd-altlinux.fillswim.local
+  domain: argocd-altlinux-k8s1.fillswim.local
 
 redis-ha:
-  enabled: true
+  enabled: false
   image:
     repository: public.ecr.aws/docker/library/redis
     tag: 7.4.1-alpine
@@ -20,7 +20,17 @@ server:
   ingress:
     enabled: true
     ingressClassName: "nginx"
-  #   tls: true
+    tls: true
+    # extraHosts:
+    #   - name: argocd-alma-k8s2.fillswim.local
+    annotations:
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      # nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    extraTls:
+      - hosts:
+        - argocd-altlinux-k8s1.fillswim.local
+        secretName: argo-cd-tls
 
   # ingressGrpc:
   #   enabled: true

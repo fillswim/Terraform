@@ -15,7 +15,7 @@ resource "kubernetes_secret" "etcd" {
 
   # cat /etc/kubernetes/pki/apiserver-etcd-client.key
   # scp root@192.168.2.121:/etc/kubernetes/pki/apiserver-etcd-client.key .certs/apiserver-etcd-client.key
-  
+
   data = {
     "ca.crt"     = filebase64(".certs/ca.crt")
     "client.crt" = filebase64(".certs/apiserver-etcd-client.crt")
