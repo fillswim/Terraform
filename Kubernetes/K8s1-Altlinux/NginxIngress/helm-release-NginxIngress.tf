@@ -11,7 +11,7 @@ resource "helm_release" "NginxIngress" {
   create_namespace = true
 
   values = [
-    file("${path.module}/NginxIngress-values.yaml")
+    file("${path.module}/helm-values/NginxIngress-values.yaml")
   ]
 }
 # =====================================================

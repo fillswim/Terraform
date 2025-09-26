@@ -9,7 +9,7 @@ resource "helm_release" "cilium" {
   namespace  = "kube-system"
 
   values = [
-    file("${path.module}/cilium-my-values-1.17.5.yaml")
+    file("${path.module}/helm-values/cilium-my-values-1.17.5.yaml")
   ]
 }
 # =====================================================

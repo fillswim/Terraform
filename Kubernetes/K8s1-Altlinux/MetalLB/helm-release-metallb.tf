@@ -10,7 +10,7 @@ resource "helm_release" "metallb" {
   create_namespace = true
 
   values = [
-    file("${path.module}/metallb-my-values-0.15.2.yaml")
+    file("${path.module}/helm-values/metallb-my-values-0.15.2.yaml")
   ]
 }
 # =====================================================

@@ -59,11 +59,13 @@ resource "local_file" "ca_cert_pem" {
 #           Output Сертификата Корневого Центра Сертификации (CA)
 # ==============================================================================
 
+# ca.key
 output "ca_private_key_pem" {
   value     = tls_private_key.ca_private_key.private_key_pem
   sensitive = true
 }
 
+# ca.crt
 output "ca_cert_pem" {
   value     = tls_self_signed_cert.ca_self_signed_cert.cert_pem
   sensitive = true
