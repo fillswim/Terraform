@@ -1,0 +1,5 @@
+# Установить CRDs вместе с чаром
+crds:
+  enabled: true
+
+replicaCount: 3

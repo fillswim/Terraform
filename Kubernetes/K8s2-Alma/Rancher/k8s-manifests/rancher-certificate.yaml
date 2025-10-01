@@ -1,0 +1,20 @@
+---
+
+apiVersion: cert-manager.io/v1
+
+# kubectl apply  -f k8s-manifests/rancher/rancher-certificate.yaml
+# kubectl delete -f k8s-manifests/rancher/rancher-certificate.yaml
+
+kind: Certificate
+metadata:
+  name: rancher-cert
+  namespace: cattle-system
+spec:
+  secretName: rancher-tls
+  dnsNames:
+    - rancher-alma-k8s2.fillswim.local
+  issuerRef:
+    name: ca-cluster-issuer
+    kind: ClusterIssuer
+  privateKey:
+    rotationPolicy: Always
