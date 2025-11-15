@@ -5,6 +5,11 @@ resource "vault_auth_backend" "kubernetes" {
 }
 
 # Настроить Kubernetes Auth Backend
+# Вывести токен для аутентификации в Kubernetes
+# kubectl exec -ti vault-0 -n vault -- cat /var/run/secrets/kubernetes.io/serviceaccount/token
+# Вывести CA для аутентификации в Kubernetes
+# kubectl exec -ti vault-0 -n vault -- cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+
 resource "vault_kubernetes_auth_backend_config" "kubernetes" {
   backend                = vault_auth_backend.kubernetes.path
   kubernetes_host        = "https://kubernetes.default.svc:443"
