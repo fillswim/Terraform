@@ -1,3 +1,7 @@
+variable "secret_name" {
+  type    = string
+}
+
 variable "admin-password" {
   type    = string
 }

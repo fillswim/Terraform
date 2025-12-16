@@ -1,18 +1,18 @@
 # ==============================================================================
-#                              Harbor Auth Secret
+#                              Redis Auth Secret for Harbor
 # ==============================================================================
 
-resource "kubernetes_secret" "harbor_auth_secret" {
+resource "kubernetes_secret" "redis_auth_secret" {
 
   depends_on = [kubernetes_namespace.harbor_ha_namespace]
 
   metadata {
-    name      = "harbor-auth-secret"
-    namespace = "harbor-ha"
+    name      = var.redis-auth-secret-name
+    namespace = var.namespace_name
   }
 
   data = {
-    admin-password = var.harbor-admin-password
+    (var.redis-password-key) = var.redis-password-value
   }
 
 }

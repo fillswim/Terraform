@@ -1,0 +1,113 @@
+---
+
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: gitlab-postgresql
+  namespace: cnpg-system
+spec:
+  # --- Количество реплик (3 ноды: 1 primary + 2 standby) ---
+  instances: 3
+
+  # --- Версия PostgreSQL совместимая с GitLab 18.x ---
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+
+  # --- Производительный storage ---
+  storage:
+    size: 20Gi
+    storageClass: longhorn   # ← подставь свой StorageClass
+
+  # # --- Anti-affinity: поды на разных нодах ---
+  # affinity:
+  #   podAntiAffinity:
+  #     preferredDuringSchedulingIgnoredDuringExecution:
+  #       - weight: 100
+  #         podAffinityTerm:
+  #           labelSelector:
+  #             matchLabels:
+  #               app: gitlab-postgresql
+  #           topologyKey: kubernetes.io/hostname
+
+  # ---------------------------------------------------------
+  #           PRODUCTION-ТЮНИНГ POSTGRESQL ДЛЯ GITLAB
+  # ---------------------------------------------------------
+  postgresql:
+    parameters:
+      # Поддержка GitLab: много соединений и бэкграунд задач
+      max_connections: "2000"
+
+      # RAM-тюнинг (4GB buffers → оптимально для GitLab HA)
+      shared_buffers: "4GB"
+      effective_cache_size: "12GB"
+      work_mem: "32MB"
+      maintenance_work_mem: "1GB"
+
+      # WAL — критично для CI/CD
+      wal_buffers: "16MB"
+      max_wal_size: "8GB"
+      min_wal_size: "2GB"
+      checkpoint_timeout: "15min"
+      checkpoint_completion_target: "0.9"
+
+      # Безопасность данных — GitLab требует sync_commit=on
+      synchronous_commit: "on"
+
+      # Оптимизация планировщика
+      random_page_cost: "1.1"
+      seq_page_cost: "1.0"
+      track_io_timing: "on"
+
+      # Ограничение на tmp-файлы (GitLab много пишет диффов)
+      temp_file_limit: "20GB"
+
+      # Aggressive autovacuum — обязательно для GitLab
+      autovacuum_max_workers: "10"
+      autovacuum_naptime: "10s"
+      autovacuum_vacuum_scale_factor: "0.01"
+      autovacuum_analyze_scale_factor: "0.01"
+      autovacuum_vacuum_cost_delay: "-1"
+
+  # --- База и пользователь GitLab ---
+  bootstrap:
+    initdb:
+      database: gitlab-db
+      owner: gitlab
+      secret:
+        name: gitlab-db-secret
+        # key: password
+
+  # # --- HA синхронная репликация ---
+  # replication:
+  #   synchronous:
+  #     # Всегда иметь минимум 1 синхронную реплику для GitLab
+  #     replicaStrictMode: true
+  #     synchronousStandbyNames:
+  #       - "*"
+
+  # # ---------------------------------------------------------
+  # #                        BACKUP (PITR)
+  # # ---------------------------------------------------------
+  # backup:
+  #   barmanObjectStore:
+  #     destinationPath: "s3://gitlab-postgresql-backups/"
+  #     s3Credentials:
+  #       accessKeyId:
+  #         name: cnpg-s3-credentials
+  #         key: accessKey
+  #       secretAccessKey:
+  #         name: cnpg-s3-credentials
+  #         key: secretKey
+  #     wal:
+  #       compression: gzip
+  #       maxParallel: 4
+
+  #   retentionPolicy: "30d"
+
+  # ---------------------------------------------------------
+  #                  Публикуем сервисы
+  # ---------------------------------------------------------
+  monitoring:
+    enablePodMonitor: true
+
+  # Оставляем сервисы RW/RO (GitLab должен подключаться к RW)
+  primaryUpdateStrategy: unsupervised

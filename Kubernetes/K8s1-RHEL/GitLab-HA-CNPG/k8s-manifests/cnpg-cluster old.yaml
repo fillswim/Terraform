@@ -1,0 +1,88 @@
+---
+
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: gitlab-postgresql
+  namespace: cnpg-system
+
+spec:
+  instances: 3
+
+  storage:
+    size: 20Gi
+    storageClass: longhorn
+
+  # Основные параметры PostgreSQL, тюнинг под GitLab (PG 16)
+  postgresql:
+    parameters:
+      max_connections: "2000"
+      shared_buffers: "4GB"
+      effective_cache_size: "12GB"
+      work_mem: "32MB"
+      maintenance_work_mem: "1GB"
+      wal_buffers: "16MB"
+      max_wal_size: "8GB"
+      min_wal_size: "2GB"
+      checkpoint_timeout: "15min"
+      checkpoint_completion_target: "0.9"
+      synchronous_commit: "on"
+      random_page_cost: "1.1"
+      seq_page_cost: "1.0"
+      track_io_timing: "on"
+      temp_file_limit: "20GB"
+      autovacuum_max_workers: "10"
+      autovacuum_naptime: "10s"
+      autovacuum_vacuum_scale_factor: "0.01"
+      autovacuum_analyze_scale_factor: "0.01"
+      autovacuum_vacuum_cost_delay: "-1"
+
+  # bootstrap initdb — создаём БД и пользователя для GitLab
+  bootstrap:
+    initdb:
+      database: gitlab-db
+      owner: gitlab
+      secret:
+        name: gitlab-db-secret
+        key: password
+
+  # Ресурсы на pod PostgreSQL (подстрой под свои ноды)
+  instancesConfiguration:
+    - name: default
+      resources:
+        requests:
+          cpu: "2"
+          memory: "6Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+
+  # # Anti-affinity (чтобы поды разъехались по нодам)
+  # affinity:
+  #   podAntiAffinity:
+  #     preferredDuringSchedulingIgnoredDuringExecution:
+  #       - weight: 100
+  #         podAffinityTerm:
+  #           labelSelector:
+  #             matchLabels:
+  #               postgresql: gitlab-postgresql
+  #           topologyKey: "kubernetes.io/hostname"
+
+  # # Бэкапы/PITR — пример с S3/MinIO (заготовка)
+  # backup:
+  #   barmanObjectStore:
+  #     destinationPath: "s3://gitlab-pg-backups/"
+  #     s3Credentials:
+  #       accessKeyId:
+  #         name: cnpg-s3-credentials
+  #         key: accessKeyId
+  #       secretAccessKey:
+  #         name: cnpg-s3-credentials
+  #         key: secretAccessKey
+  #     wal:
+  #       compression: gzip
+  #       maxParallel: 4
+
+  # Экспорт метрик (Prometheus)
+  monitoring:
+    enablePodMonitor: true

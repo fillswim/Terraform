@@ -4,11 +4,11 @@
 
 resource "kubernetes_secret" "redis_auth_secret" {
 
-  depends_on = [kubernetes_namespace.redis_ha_namespace]
+  depends_on = [kubernetes_namespace.redis_namespace]
 
   metadata {
-    name      = "redis-auth-secret"
-    namespace = "redis-ha"
+    name      = var.secret_name
+    namespace = var.namespace_name
   }
 
   data = {

@@ -4,11 +4,11 @@
 
 resource "kubernetes_secret" "postgresql_auth_secret" {
 
-  depends_on = [kubernetes_namespace.postgresql_ha_namespace]
+  depends_on = [kubernetes_namespace.postgresql_namespace]
 
   metadata {
-    name      = "postgresql-auth-secret"
-    namespace = "postgresql-ha"
+    name      = var.secret_name
+    namespace = var.namespace_name
   }
 
   data = {

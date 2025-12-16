@@ -2,19 +2,19 @@
 #                              PostgreSQL HA Namespace
 # ==============================================================================
 
-resource "kubernetes_namespace" "postgresql_ha_namespace" {
+resource "kubernetes_namespace" "postgresql_namespace" {
 
   metadata {
 
     annotations = {
-      name = "postgresql-ha-namespace-annotation"
+      name = "${var.namespace_name}-namespace-annotation"
     }
 
     labels = {
-      mylabel = "postgresql-ha"
+      mylabel = "${var.namespace_name}-label"
     }
 
-    name = "postgresql-ha"
+    name = var.namespace_name
 
   }
 }
