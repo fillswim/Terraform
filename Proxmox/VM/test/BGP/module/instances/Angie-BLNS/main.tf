@@ -25,11 +25,11 @@ resource "local_file" "user_data_tmpl" {
 }
 
 
-module "test_almalinux_10" {
+module "angie_blns" {
 
   depends_on = [local_file.user_data_tmpl]
 
-  source = "/home/fill/Terraform-Modules/Proxmox/bpg/0.77.1/v1/instance"
+  source = "/home/fill/Terraform-Modules/Proxmox/bpg/0.77.1/v2/instance"
 
   # ================================================
   #                  SSH Connection
@@ -86,5 +86,5 @@ module "test_almalinux_10" {
 }
 
 output "details" {
-  value = module.test_almalinux_10.details
+  value = module.angie_blns.details
 }
