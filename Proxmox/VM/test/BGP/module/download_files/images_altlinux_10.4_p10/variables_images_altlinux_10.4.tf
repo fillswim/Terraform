@@ -12,3 +12,6 @@ variable "image_type" {
 }
 
 
+variable "proxmox_node_name" {
+  type    = string
+}
