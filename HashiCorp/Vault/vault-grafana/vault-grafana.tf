@@ -1,7 +1,8 @@
 
 module "vault-grafana" {
 
-  source = "/home/fill/Terraform-Modules/HashiCorp-Vault/Secret"
+  # source = "/home/fill/Terraform-Modules/HashiCorp-Vault/Secret"
+  source = "/home/fill/Terraform-Modules/HashiCorp/Vault-Secret"
 
   # ==========================================
   #                Vault Policy

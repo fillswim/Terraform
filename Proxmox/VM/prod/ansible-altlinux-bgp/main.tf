@@ -29,6 +29,7 @@ module "ansible_altlinux" {
   depends_on = [local_file.user_data_tmpl]
 
   source = "/home/fill/Terraform-Modules/Proxmox/bpg/0.77.1/v1/instance"
+  # source = "/home/fill/Terraform-Modules/Proxmox/bpg/0.77.1/v2/instance"
 
   # ================================================
   #                  SSH Connection
